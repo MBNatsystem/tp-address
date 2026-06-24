@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: tp-adresse-test
+  datasource:
+    url: jdbc:sqlite:./data/adresses.db
+    driver-class-name: org.sqlite.JDBC
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:init.sql
+logging:
+  level:
+    root: INFO
+    fr.natsystem.tp_adresse_test: INFO
+batch:
+  address:
+    input-file: classpath:adresses-79.csv/adresses-79-2.csv
+    chunk-size: 1000
+    upsert-sql: classpath:sql/upsert-address.sql
+    insert-stage-sql : classpath:sql/insert-stage-address.sql

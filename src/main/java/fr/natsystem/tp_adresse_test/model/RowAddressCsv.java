@@ -1,0 +1,41 @@
+package fr.natsystem.tp_adresse_test.model;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RowAddressCsv {
+    private Integer lineNumber;
+    private String id;
+    private String idFantoir;
+    private Integer numero;
+    private String rep;
+    private String nomVoie;
+    private String codePostal;
+    private String codeInsee;
+    private String nomCommune;
+    private String codeInseeAncienneCommune;
+    private String nomAncienneCommune;
+    private Double x;
+    private Double y;
+    private Double lon;
+    private Double lat;
+    private String typePosition;
+    private String alias;
+    private String nomLd;
+    private String libelleAcheminement;
+    private String nomAfnor;
+    private String sourcePosition;
+    private String sourceNomVoie;
+    private Integer certificationCommune;
+    private String cadParcelles;
+}
