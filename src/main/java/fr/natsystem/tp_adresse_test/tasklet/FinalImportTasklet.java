@@ -44,6 +44,7 @@ public class FinalImportTasklet implements Tasklet {
                 source_nom_voie,
                 certification_commune,
                 cad_parcelles,
+                line_hash,
                 updated_at
             )
             SELECT
@@ -70,12 +71,11 @@ public class FinalImportTasklet implements Tasklet {
                 s.source_nom_voie,
                 s.certification_commune,
                 s.cad_parcelles,
+                s.line_hash,
                 datetime('now')
-            FROM address_staging s
-            WHERE s.stage_id IN (
-                SELECT stage_id
-                FROM address_to_insert
-            )
+            FROM address_sync_plan p
+            JOIN address_staging s ON s.stage_id = p.stage_id
+            WHERE p.action IN ('INSERT', 'UPDATE')
             ON CONFLICT(id) DO UPDATE SET
                 id_fantoir = excluded.id_fantoir,
                 numero = excluded.numero,
@@ -99,8 +99,18 @@ public class FinalImportTasklet implements Tasklet {
                 source_nom_voie = excluded.source_nom_voie,
                 certification_commune = excluded.certification_commune,
                 cad_parcelles = excluded.cad_parcelles,
+                line_hash = excluded.line_hash,
                 updated_at = datetime('now');
         """);
+
+        jdbcTemplate.update("""
+                DELETE FROM ban_address_final
+                WHERE id IN (
+                    SELECT id
+                    FROM address_sync_plan
+                    WHERE action = 'DELETE'
+                )
+                """);
 
         return RepeatStatus.FINISHED;
 

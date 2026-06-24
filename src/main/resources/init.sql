@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS ban_address_final (
     source_nom_voie TEXT,
     certification_commune INTEGER,
     cad_parcelles TEXT,
+    line_hash TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -92,3 +93,12 @@ CREATE TABLE IF NOT EXISTS address_to_insert (
 
 CREATE INDEX IF NOT EXISTS idx_address_to_insert_id
 ON address_to_insert(id);
+
+CREATE TABLE IF NOT EXISTS address_sync_plan (
+    id TEXT PRIMARY KEY,
+    stage_id INTEGER,
+    action TEXT NOT NULL,
+    old_hash TEXT,
+    new_hash TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

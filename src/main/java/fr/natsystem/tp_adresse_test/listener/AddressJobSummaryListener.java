@@ -59,12 +59,34 @@ public class AddressJobSummaryListener implements JobExecutionListener {
             ORDER BY id
         """, String.class);
 
+        Integer insertCount = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*)
+            FROM address_sync_plan
+            WHERE action = 'INSERT'
+        """, Integer.class);
 
+        Integer updateCount = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*)
+            FROM address_sync_plan
+            WHERE action = 'UPDATE'
+        """, Integer.class);
+
+        Integer deleteCount = jdbcTemplate.queryForObject("""
+            SELECT COUNT(*)
+            FROM address_sync_plan
+            WHERE action = 'DELETE'
+        """, Integer.class);
+
+        log.info("===========================================");
         log.info("Lignes retenues pour insertion : {}", toInsertCount);
         log.info("Doublons rejetés : {}", duplicateCount);
         log.info("Conflits métier : {}", conflictCount);
         log.info("IDs en conflit métier : {}", conflictIds);
         log.info("Statut final : {}", jobExecution.getStatus());
+        log.info("===========================================");
+        log.info("Lignes insérées : {}", insertCount);
+        log.info("Lignes modifiées : {}", updateCount);
+        log.info("Lignes supprimées : {}", deleteCount);
         log.info("===========================================");
     }
 }

@@ -27,6 +27,8 @@ public class CleanWorkingTablesTasklet implements Tasklet {
             
         """);//WHERE rejection_type IN ('DOUBLON', 'CONFLIT_METIER')
 
+        jdbcTemplate.update("DELETE FROM address_sync_plan");
+
         return RepeatStatus.FINISHED;
     }
 }

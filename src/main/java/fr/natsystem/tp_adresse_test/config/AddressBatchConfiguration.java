@@ -18,6 +18,7 @@ public class AddressBatchConfiguration  {
         @Qualifier("cleanWorkingTablesStep") Step cleanWorkingTablesStep,
         @Qualifier("loadCsvToStageStep") Step loadCsvToStageStep,
         @Qualifier("detectDuplicatesAndConflictsStep") Step detectDuplicatesAndConflictsStep,
+        @Qualifier("synchroPlanStep") Step synchroPlanStep,
         @Qualifier("finalImportStep") Step finalImportStep,
         AddressJobSummaryListener summaryListener
     ){
@@ -25,6 +26,7 @@ public class AddressBatchConfiguration  {
         .start(cleanWorkingTablesStep)
         .next(loadCsvToStageStep)
         .next(detectDuplicatesAndConflictsStep)
+        .next(synchroPlanStep)
         .next(finalImportStep)
         .listener(summaryListener)
         .build();
