@@ -134,7 +134,7 @@ public class FinalImportTasklet implements Tasklet {
                 AND ban_address_final.id = s.id;
                 """);
         
-                //Suppression des adresses supprimées
+        //Suppression des adresses supprimées
         jdbcTemplate.execute("""
                 DELETE FROM ban_address_final
                 WHERE id IN (

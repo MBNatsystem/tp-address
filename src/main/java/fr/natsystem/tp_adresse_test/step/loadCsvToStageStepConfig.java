@@ -44,14 +44,14 @@ public class loadCsvToStageStepConfig {
         AddressStepListener stepListener,
         AddressSkipListener skipListener,
         CountLineListener countLineListener,
-        @Value("${batch.address.chunk-size:2000}") int chunkSize
+        @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
         return new StepBuilder("loadCsvToStageStep", jobRepository)
         .<RowAddressCsv, AddressStage>chunk(chunkSize)
         .reader(reader)
         .processor(processor)
         .writer(jdbcStageWriter)
-        //.taskExecutor(taskExecutor())
+        //.taskExecutor(taskExecutor()) //Pour exécuter le step en parallèle, mais pas de gain de performance sur SQLite
         .listener(stepListener)
         .transactionManager(txManager)
         .faultTolerant()
@@ -63,6 +63,7 @@ public class loadCsvToStageStepConfig {
         .build();
     }
 
+    // Bean pour exécuter le step en parallèle
     @Bean
     public AsyncTaskExecutor taskExecutor(){
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -76,6 +77,7 @@ public class loadCsvToStageStepConfig {
         return executor;
     }
 
+    // Bean pour lire le fichier CSV et mapper les lignes en objets RowAddressCsv
     @Bean
     public FlatFileItemReader<RowAddressCsv> csvReader(
         @Value("${batch.address.input-file}") Resource inputFile
@@ -89,6 +91,7 @@ public class loadCsvToStageStepConfig {
         .build();
     }
 
+    // Bean pour écrire les objets AddressStage dans la base de données
     @Bean
     public JdbcBatchItemWriter<AddressStage> jdbcStageWriter(
             DataSource dataSource,

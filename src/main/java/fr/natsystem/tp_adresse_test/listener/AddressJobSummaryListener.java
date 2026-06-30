@@ -72,7 +72,6 @@ public class AddressJobSummaryListener implements JobExecutionListener {
         log.info("Lignes retenues pour insertion : {}", toInsertCount);
         log.info("Doublons rejetés : {}", duplicateCount);
         log.info("Conflits métier : {}", conflictCount);
-        //log.info("IDs en conflit métier : {}", conflictIds);
         log.info("Statut final : {}", jobExecution.getStatus());
         log.info("===========================================");
         log.info("Lignes insérées : {}", insertCount);

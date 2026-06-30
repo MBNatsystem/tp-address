@@ -46,6 +46,7 @@ public class AddressLineMapper implements LineMapper<RowAddressCsv> {
     @Override
     public RowAddressCsv mapLine(String line, int lineNumber) throws Exception {
         
+        //Vérification de la ligne CSV et mapping vers l'objet RowAddressCsv
         FieldSet fs = tokenizer.tokenize(line);
         rowValidator.validate(fs, lineNumber);
 

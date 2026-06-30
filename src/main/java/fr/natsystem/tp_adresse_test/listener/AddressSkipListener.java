@@ -22,6 +22,6 @@ public class AddressSkipListener implements SkipListener<RowAddressCsv, RowAddre
 
     @Override
     public void onSkipInWrite(RowAddressCsv item, Throwable t) {
-        log.warn("Élément ignoré pendant l'écriture : {}", item, t);
+        log.warn("Élément ignoré pendant l'écriture : {}", item);
     }
 }

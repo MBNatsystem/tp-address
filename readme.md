@@ -100,7 +100,9 @@ Contient toutes les erreurs de dupplication ou de conflit métier. Les duplicati
 La table: address_sync_plan
 Contient les informations de votre dernier import (lignes ajoutées/modifiées/supprimées)
 
-### Configuration avancée
+---
+
+## Configuration avancée
 
 L'application utilise SQLite. Certains paramètres peuvent être ajustés pour privilégier soit la performance, soit la sécurité des données.
 
