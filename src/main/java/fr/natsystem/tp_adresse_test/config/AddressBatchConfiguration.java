@@ -29,5 +29,4 @@ public class AddressBatchConfiguration  {
         .listener(summaryListener)
         .build();
     }
-
 }

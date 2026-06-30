@@ -36,13 +36,13 @@ batch:
 Le fichier CSV doit être placé dans :
 
 ```text
-src/main/resources/
+data/csv
 ```
 
 Exemple :
 
 ```text
-src/main/resources/adresses-79.csv
+data/csv/adresses-79.csv
 ```
 
 ---
@@ -63,16 +63,28 @@ mvn clean package
 mvn spring-boot:run
 ```
 
+```bash
+java -jar .\target\tp-adresse-test-0.0.1-SNAPSHOT.jar
+```
+
 ### Import par code postal
 
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.arguments=codePostal=79240"
 ```
 
+```bash
+java -jar .\target\tp-adresse-test-0.0.1-SNAPSHOT.jar codePostal=79240
+```
+
 ### Import par code INSEE
 
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.arguments=codeInsee=79002"
+```
+
+```bash
+java -jar .\target\tp-adresse-test-0.0.1-SNAPSHOT.jar codeInsee=79002
 ```
 
 ### Import par code postal et code INSEE
@@ -225,6 +237,10 @@ Exemple :
 
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-Xms2g -Xmx4g"
+```
+
+```bash
+java "-Dspring-boot.run.jvmArguments=-Xms2g -Xmx4g" -jar .\target\tp-adresse-test-0.0.1-SNAPSHOT.jar
 ```
 
 Paramètres :

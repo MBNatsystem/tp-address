@@ -2,7 +2,6 @@ package fr.natsystem.tp_adresse_test.step;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.sql.DataSource;
 
@@ -19,8 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.listener.AddressSkipListener;
@@ -33,6 +30,8 @@ import fr.natsystem.tp_adresse_test.utils.AddressLineMapper;
 
 @Configuration
 public class loadCsvToStageStepConfig {
+
+    private final int SKIP_LIMIT = 1000;
     
     @Bean
     public Step loadCsvToStageStep (
@@ -51,30 +50,15 @@ public class loadCsvToStageStepConfig {
         .reader(reader)
         .processor(processor)
         .writer(jdbcStageWriter)
-        //.taskExecutor(taskExecutor()) //Pour exécuter le step en parallèle, mais pas de gain de performance sur SQLite
         .listener(stepListener)
         .transactionManager(txManager)
         .faultTolerant()
         .skip(ValidationException.class)
         .skip(IllegalArgumentException.class)
-        .skipLimit(1001)
+        .skipLimit(SKIP_LIMIT)
         .listener(skipListener)
         .listener(countLineListener)
         .build();
-    }
-
-    // Bean pour exécuter le step en parallèle
-    @Bean
-    public AsyncTaskExecutor taskExecutor(){
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(4);
-        executor.setThreadNamePrefix("loadCsvToStageStep-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.initialize();
-        return executor;
     }
 
     // Bean pour lire le fichier CSV et mapper les lignes en objets RowAddressCsv

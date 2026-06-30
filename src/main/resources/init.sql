@@ -1,6 +1,6 @@
 PRAGMA journal_mode = WAL;
 PRAGMA synchronous = NORMAL;
-PRAGMA cache_size = -1524288;
+PRAGMA cache_size = -3000000;
 PRAGMA temp_store = MEMORY;
 
 
