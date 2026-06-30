@@ -8,7 +8,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component("synchroPlanTasklet")
 @AllArgsConstructor
 public class SynchroPlanTasklet implements Tasklet{
@@ -25,16 +27,14 @@ public class SynchroPlanTasklet implements Tasklet{
                     id, stage_id, action, old_hash, new_hash
                 )
                 SELECT
-                    s.id,
-                    s.stage_id,
+                    i.id,
+                    i.stage_id,
                     'INSERT',
                     NULL,
-                    s.line_hash
-                FROM address_staging s
-                JOIN address_to_insert i
-                ON i.stage_id = s.stage_id
+                    i.line_hash
+                FROM address_to_insert i
                 LEFT JOIN ban_address_final baf
-                ON s.id = baf.id
+                ON i.id = baf.id
                 WHERE baf.id IS NULL
                 """);
 
@@ -44,20 +44,18 @@ public class SynchroPlanTasklet implements Tasklet{
                     id, stage_id, action, old_hash, new_hash
                 )
                 SELECT
-                    s.id,
-                    s.stage_id,
+                    i.id,
+                    i.stage_id,
                     'UPDATE',
                     baf.line_hash,
-                    s.line_hash
-                FROM address_staging s
-                JOIN address_to_insert i
-                ON i.stage_id = s.stage_id
+                    i.line_hash
+                FROM address_to_insert i
                 JOIN ban_address_final baf
-                ON s.id = baf.id
-                WHERE baf.id IS NOT NULL
+                ON i.id = baf.id
+                WHERE baf.line_hash IS NOT i.line_hash
                 """);
-        
-        //Gestion des suppression
+
+        //Gestion des suppressions
         jdbcTemplate.update("""
                 INSERT INTO address_sync_plan ( 
                     id, stage_id, action, old_hash, new_hash
@@ -71,7 +69,7 @@ public class SynchroPlanTasklet implements Tasklet{
                 FROM ban_address_final baf
                 LEFT JOIN address_to_insert i
                 ON i.id = baf.id
-                WHERE i.id IS NULL
+                WHERE i.id IS NULL;
                 """);
 
         return RepeatStatus.FINISHED;

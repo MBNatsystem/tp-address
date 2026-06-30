@@ -1,7 +1,5 @@
 package fr.natsystem.tp_adresse_test.model;
 
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,6 +18,7 @@ public class AddressStage {
     private Integer lineNumber;
     private String lineHash;
 
+    //@Pattern(regexp = "^\\d{5}_[A-Za-z0-9]{4,8}_\\d{5}(?:_[A-Za-z0-9_ -]+)?$", message = "id invalide")
     private String id;
     private String idFantoir;
     private Integer numero;
@@ -30,10 +29,10 @@ public class AddressStage {
     private String nomCommune;
     private String codeInseeAncienneCommune;
     private String nomAncienneCommune;
-    private Double x;
-    private Double y;
-    private Double lon;
-    private Double lat;
+    private String x;
+    private String y;
+    private String lon;
+    private String lat;
     private String typePosition;
     private String alias;
     private String nomLd;

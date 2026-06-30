@@ -1,7 +1,5 @@
 package fr.natsystem.tp_adresse_test.listener;
 
-import java.util.List;
-
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
@@ -41,7 +39,7 @@ public class AddressJobSummaryListener implements JobExecutionListener {
         Integer toInsertCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM address_to_insert", Integer.class);
 
         Integer duplicateCount = jdbcTemplate.queryForObject("""
-            SELECT COUNT(*)
+            SELECT COUNT(DISTINCT id)
             FROM address_reject
             WHERE reject_type = 'DOUBLON'
         """, Integer.class);
@@ -51,13 +49,6 @@ public class AddressJobSummaryListener implements JobExecutionListener {
             FROM address_reject
             WHERE reject_type = 'CONFLIT_METIER'
         """, Integer.class);
-
-        List<String> conflictIds = jdbcTemplate.queryForList("""
-            SELECT DISTINCT id
-            FROM address_reject
-            WHERE reject_type = 'CONFLIT_METIER'
-            ORDER BY id
-        """, String.class);
 
         Integer insertCount = jdbcTemplate.queryForObject("""
             SELECT COUNT(*)
@@ -81,7 +72,7 @@ public class AddressJobSummaryListener implements JobExecutionListener {
         log.info("Lignes retenues pour insertion : {}", toInsertCount);
         log.info("Doublons rejetés : {}", duplicateCount);
         log.info("Conflits métier : {}", conflictCount);
-        log.info("IDs en conflit métier : {}", conflictIds);
+        //log.info("IDs en conflit métier : {}", conflictIds);
         log.info("Statut final : {}", jobExecution.getStatus());
         log.info("===========================================");
         log.info("Lignes insérées : {}", insertCount);

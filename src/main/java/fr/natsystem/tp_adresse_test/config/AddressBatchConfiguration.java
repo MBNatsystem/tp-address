@@ -23,8 +23,7 @@ public class AddressBatchConfiguration  {
         AddressJobSummaryListener summaryListener
     ){
         return new JobBuilder("importAddressesJob", jobRepository)
-        .start(cleanWorkingTablesStep)
-        .next(loadCsvToStageStep)
+        .start(loadCsvToStageStep)
         .next(detectDuplicatesAndConflictsStep)
         .next(synchroPlanStep)
         .next(finalImportStep)

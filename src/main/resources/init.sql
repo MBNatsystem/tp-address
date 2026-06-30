@@ -1,3 +1,14 @@
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA cache_size = -1524288;
+PRAGMA temp_store = MEMORY;
+
+
+DROP TABLE IF EXISTS address_staging;
+DROP TABLE IF EXISTS address_reject;
+DROP TABLE IF EXISTS address_to_insert;
+DROP TABLE IF EXISTS address_sync_plan;
+
 CREATE TABLE IF NOT EXISTS ban_address_final (
     id TEXT PRIMARY KEY,
     id_fantoir TEXT,
@@ -60,12 +71,6 @@ CREATE TABLE IF NOT EXISTS address_staging  (
 
 );
 
-CREATE INDEX IF NOT EXISTS idx_staging_ban_id
-ON address_staging (id);
-
-CREATE INDEX IF NOT EXISTS idx_staging_ban_id_hash
-ON address_staging (id, line_hash);
-
 CREATE TABLE IF NOT EXISTS address_reject (
 
     reject_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,8 +96,6 @@ CREATE TABLE IF NOT EXISTS address_to_insert (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_address_to_insert_id
-ON address_to_insert(id);
 
 CREATE TABLE IF NOT EXISTS address_sync_plan (
     id TEXT PRIMARY KEY,
@@ -102,3 +105,8 @@ CREATE TABLE IF NOT EXISTS address_sync_plan (
     new_hash TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_code_postal ON ban_address_final(code_postal);
+CREATE INDEX IF NOT EXISTS idx_commune ON ban_address_final(nom_commune);
+CREATE INDEX IF NOT EXISTS idx_voie ON ban_address_final(nom_voie);
+CREATE INDEX IF NOT EXISTS idx_insee ON ban_address_final(code_insee);

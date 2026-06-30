@@ -17,7 +17,7 @@ public class AddressSkipListener implements SkipListener<RowAddressCsv, RowAddre
 
     @Override
     public void onSkipInProcess(RowAddressCsv item, Throwable t) {
-        log.warn("Élément ignoré pendant le process : {}", item, t);
+        log.warn("Élément ignoré pendant le process : {}", item);
     }
 
     @Override

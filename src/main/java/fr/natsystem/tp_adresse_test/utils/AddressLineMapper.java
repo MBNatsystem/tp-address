@@ -51,6 +51,7 @@ public class AddressLineMapper implements LineMapper<RowAddressCsv> {
 
         return new RowAddressCsv(
         lineNumber,
+        line,
         fs.readString("id"),
         fs.readString("idFantoir"),
         fs.readInt("numero"),
@@ -61,10 +62,10 @@ public class AddressLineMapper implements LineMapper<RowAddressCsv> {
         fs.readString("nomCommune"),
         fs.readString("codeInseeAncienneCommune"),
         fs.readString("nomAncienneCommune"),
-        fs.readDouble("x"),
-        fs.readDouble("y"),
-        fs.readDouble("lon"),
-        fs.readDouble("lat"),
+        fs.readString("x"),
+        fs.readString("y"),
+        fs.readString("lon"),
+        fs.readString("lat"),
         fs.readString("typePosition"),
         fs.readString("alias"),
         fs.readString("nomLd"),

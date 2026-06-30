@@ -19,6 +19,24 @@ public class FinalImportTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
+        //Suppression des index pour améliorer les performances de l'import
+        jdbcTemplate.execute("""
+                DROP INDEX IF EXISTS idx_code_postal;
+                """);
+        
+        jdbcTemplate.execute("""
+                DROP INDEX IF EXISTS idx_insee;
+                """);
+        
+        jdbcTemplate.execute("""
+                DROP INDEX IF EXISTS idx_commune;
+                """);
+        
+        jdbcTemplate.execute("""
+                DROP INDEX IF EXISTS idx_voie;
+                """);
+
+        //Insertion des nouvelles adresses
         jdbcTemplate.update("""
             INSERT INTO ban_address_final (
                 id,
@@ -45,6 +63,7 @@ public class FinalImportTasklet implements Tasklet {
                 certification_commune,
                 cad_parcelles,
                 line_hash,
+                created_at,
                 updated_at
             )
             SELECT
@@ -72,45 +91,75 @@ public class FinalImportTasklet implements Tasklet {
                 s.certification_commune,
                 s.cad_parcelles,
                 s.line_hash,
+                datetime('now'),
                 datetime('now')
             FROM address_sync_plan p
-            JOIN address_staging s ON s.stage_id = p.stage_id
-            WHERE p.action IN ('INSERT', 'UPDATE')
-            ON CONFLICT(id) DO UPDATE SET
-                id_fantoir = excluded.id_fantoir,
-                numero = excluded.numero,
-                rep = excluded.rep,
-                nom_voie = excluded.nom_voie,
-                code_postal = excluded.code_postal,
-                code_insee = excluded.code_insee,
-                nom_commune = excluded.nom_commune,
-                code_insee_ancienne_commune = excluded.code_insee_ancienne_commune,
-                nom_ancienne_commune = excluded.nom_ancienne_commune,
-                x = excluded.x,
-                y = excluded.y,
-                lon = excluded.lon,
-                lat = excluded.lat,
-                type_position = excluded.type_position,
-                alias = excluded.alias,
-                nom_ld = excluded.nom_ld,
-                libelle_acheminement = excluded.libelle_acheminement,
-                nom_afnor = excluded.nom_afnor,
-                source_position = excluded.source_position,
-                source_nom_voie = excluded.source_nom_voie,
-                certification_commune = excluded.certification_commune,
-                cad_parcelles = excluded.cad_parcelles,
-                line_hash = excluded.line_hash,
-                updated_at = datetime('now');
+            JOIN address_staging s
+                ON s.stage_id = p.stage_id
+            WHERE p.action = 'INSERT';
         """);
 
-        jdbcTemplate.update("""
+        //Mise à jour des adresses existantes
+        jdbcTemplate.execute("""
+                UPDATE ban_address_final
+                SET
+                    id_fantoir = s.id_fantoir,
+                    numero = s.numero,
+                    rep = s.rep,
+                    nom_voie = s.nom_voie,
+                    code_postal = s.code_postal,
+                    code_insee = s.code_insee,
+                    nom_commune = s.nom_commune,
+                    code_insee_ancienne_commune = s.code_insee_ancienne_commune,
+                    nom_ancienne_commune = s.nom_ancienne_commune,
+                    x = s.x,
+                    y = s.y,
+                    lon = s.lon,
+                    lat = s.lat,
+                    type_position = s.type_position,
+                    alias = s.alias,
+                    nom_ld = s.nom_ld,
+                    libelle_acheminement = s.libelle_acheminement,
+                    nom_afnor = s.nom_afnor,
+                    source_position = s.source_position,
+                    source_nom_voie = s.source_nom_voie,
+                    certification_commune = s.certification_commune,
+                    cad_parcelles = s.cad_parcelles,
+                    line_hash = s.line_hash,
+                    updated_at = datetime('now')
+                FROM address_sync_plan p
+                JOIN address_staging s
+                    ON s.stage_id = p.stage_id
+                WHERE p.action = 'UPDATE'
+                AND ban_address_final.id = s.id;
+                """);
+        
+                //Suppression des adresses supprimées
+        jdbcTemplate.execute("""
                 DELETE FROM ban_address_final
                 WHERE id IN (
                     SELECT id
                     FROM address_sync_plan
                     WHERE action = 'DELETE'
-                )
+                );
                 """);
+        
+        //Recréation des index pour améliorer les performances des requêtes de l'api
+        jdbcTemplate.execute("""
+                CREATE INDEX IF NOT EXISTS idx_code_postal ON ban_address_final(code_postal);
+                """);
+        
+        jdbcTemplate.execute("""
+                CREATE INDEX IF NOT EXISTS idx_insee ON ban_address_final(code_insee);
+                """);
+        jdbcTemplate.execute("""
+                CREATE INDEX IF NOT EXISTS idx_commune ON ban_address_final(nom_commune);
+                """);
+        jdbcTemplate.execute("""
+                CREATE INDEX IF NOT EXISTS idx_voie ON ban_address_final(nom_voie);
+                """);
+        
+        jdbcTemplate.execute("PRAGMA optimize");
 
         return RepeatStatus.FINISHED;
 
