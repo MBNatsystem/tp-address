@@ -26,7 +26,7 @@ Les principaux paramètres sont définis dans `application.yaml` :
 ```yaml
 batch:
   address:
-    input-file: classpath:adresses-79.csv
+    input-file: file:./data/csv/adresses-79.csv
     chunk-size: 500
 ```
 
