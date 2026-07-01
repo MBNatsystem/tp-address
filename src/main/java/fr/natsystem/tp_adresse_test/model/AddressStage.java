@@ -28,10 +28,10 @@ public class AddressStage {
     private String nomCommune;
     private String codeInseeAncienneCommune;
     private String nomAncienneCommune;
-    private String x;
-    private String y;
-    private String lon;
-    private String lat;
+    private Float x;
+    private Float y;
+    private Double lon;
+    private Double lat;
     private String typePosition;
     private String alias;
     private String nomLd;

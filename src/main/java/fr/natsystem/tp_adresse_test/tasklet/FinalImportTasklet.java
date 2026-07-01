@@ -91,8 +91,8 @@ public class FinalImportTasklet implements Tasklet {
                 s.certification_commune,
                 s.cad_parcelles,
                 s.line_hash,
-                datetime('now'),
-                datetime('now')
+                NOW(),
+                NOW()
             FROM address_sync_plan p
             JOIN address_staging s
                 ON s.stage_id = p.stage_id
@@ -126,7 +126,7 @@ public class FinalImportTasklet implements Tasklet {
                     certification_commune = s.certification_commune,
                     cad_parcelles = s.cad_parcelles,
                     line_hash = s.line_hash,
-                    updated_at = datetime('now')
+                    updated_at = NOW()
                 FROM address_sync_plan p
                 JOIN address_staging s
                     ON s.stage_id = p.stage_id
@@ -159,8 +159,6 @@ public class FinalImportTasklet implements Tasklet {
                 CREATE INDEX IF NOT EXISTS idx_voie ON ban_address_final(nom_voie);
                 """);
         
-        jdbcTemplate.execute("PRAGMA optimize");
-
         return RepeatStatus.FINISHED;
 
     }

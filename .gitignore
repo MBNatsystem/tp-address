@@ -6,6 +6,8 @@ target/
 data/*
 !data/.gitkeep
 src/main/resources/adresses-79.csv/
+src/main/resources/application-local.yaml
+.env
 
 ### STS ###
 .apt_generated

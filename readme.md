@@ -21,12 +21,12 @@ Technologies :
 
 ## Configuration
 
-Les principaux paramètres sont définis dans `application.yaml` :
+Les principaux paramètres sont définis dans `application-local.yaml`, un exemple est disponible dans `application-local.example.yaml` :
 
 ```yaml
 batch:
   address:
-    input-file: classpath:adresses-79.csv
+    input-file: file:./data/csv/adresses-79.csv
     chunk-size: 500
 ```
 

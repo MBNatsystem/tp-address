@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: tp-adresse-test
+  datasource:
+    url: change-me
+    username: change-me
+    password: change-me
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:init.sql
+logging:
+  level:
+    root: INFO
+    fr.natsystem.tp_adresse_test: INFO
+batch:
+  address:
+    jdbc.initialize-schema: always
+    input-file: file:./data/csv/adresses-79.csv/adresses-79-2.csv
+    chunk-size: 10000
+    upsert-sql: classpath:sql/upsert-address.sql
+    insert-stage-sql : classpath:sql/insert-address.sql

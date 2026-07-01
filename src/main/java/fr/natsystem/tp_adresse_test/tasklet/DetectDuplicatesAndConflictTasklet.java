@@ -1,5 +1,7 @@
 package fr.natsystem.tp_adresse_test.tasklet;
 
+import java.util.List;
+
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -8,7 +10,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component("detectDuplicatesAndConflictsTasklet")
 @AllArgsConstructor
 public class DetectDuplicatesAndConflictTasklet implements Tasklet{
@@ -23,6 +27,7 @@ public class DetectDuplicatesAndConflictTasklet implements Tasklet{
                 CREATE INDEX IF NOT EXISTS idx_address_staging_id_hash
                 ON address_staging(id, line_hash);
                 """);
+        
 
         jdbcTemplate.execute("DROP TABLE IF EXISTS temp.address_id_stats");
 
@@ -30,31 +35,29 @@ public class DetectDuplicatesAndConflictTasklet implements Tasklet{
         //Table temporaire pour stocker les statistiques d'occurrence des id
         jdbcTemplate.execute("""
             CREATE TEMP TABLE address_id_stats (
-            stage_id INTEGER PRIMARY KEY,
+                stage_id INTEGER PRIMARY KEY,
                 id TEXT,
                 occurrence_count INTEGER NOT NULL,
                 min_hash TEXT NOT NULL,
                 max_hash TEXT NOT NULL
-            ) WITHOUT ROWID
+            )
         """);
 
         jdbcTemplate.update("""
             INSERT INTO address_id_stats (
-            stage_id,
+                stage_id,
                 id,
                 occurrence_count,
                 min_hash,
                 max_hash
             )
             SELECT
-                stage_id,
+                MIN(stage_id) AS stage_id,
                 id,
                 COUNT(*) AS occurrence_count,
                 MIN(line_hash) AS min_hash,
                 MAX(line_hash) AS max_hash
             FROM address_staging
-            WHERE id IS NOT NULL
-              AND line_hash IS NOT NULL
             GROUP BY id
         """);
 
@@ -124,9 +127,6 @@ public class DetectDuplicatesAndConflictTasklet implements Tasklet{
             JOIN address_id_stats st ON st.stage_id = s.stage_id
             WHERE st.max_hash = st.min_hash
         """);
-
-        jdbcTemplate.execute("PRAGMA optimize");
-
 
         return RepeatStatus.FINISHED;
 

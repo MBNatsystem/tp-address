@@ -102,10 +102,10 @@ public class loadCsvToStageStepConfig {
                     ps.setString(i++, item.getNomCommune());
                     ps.setString(i++, item.getCodeInseeAncienneCommune());
                     ps.setString(i++, item.getNomAncienneCommune());
-                    ps.setString(i++, item.getX());
-                    ps.setString(i++, item.getY());
-                    ps.setString(i++, item.getLon());
-                    ps.setString(i++, item.getLat());
+                    ps.setObject(i++, item.getX());
+                    ps.setObject(i++, item.getY());
+                    ps.setObject(i++, item.getLon());
+                    ps.setObject(i++, item.getLat());
                     ps.setString(i++, item.getTypePosition());
                     ps.setString(i++, item.getAlias());
                     ps.setString(i++, item.getNomLd());

@@ -26,13 +26,13 @@ public record RowAddressCsv(
 
         String nomAncienneCommune,
 
-        String x,
+        Float x,
 
-        String y,
+        Float y,
 
-        String lon,
+        Double lon,
 
-        String lat,
+        Double lat,
 
         String typePosition,
 

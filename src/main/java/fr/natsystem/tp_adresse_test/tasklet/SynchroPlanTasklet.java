@@ -52,7 +52,7 @@ public class SynchroPlanTasklet implements Tasklet{
                 FROM address_to_insert i
                 JOIN ban_address_final baf
                 ON i.id = baf.id
-                WHERE baf.line_hash IS NOT i.line_hash
+                WHERE baf.line_hash <> i.line_hash
                 """);
 
         //Gestion des suppressions
