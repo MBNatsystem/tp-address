@@ -12,12 +12,16 @@ import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWrite
 import org.springframework.batch.infrastructure.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.support.SynchronizedItemStreamReader;
 import org.springframework.batch.infrastructure.item.validator.ValidationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.listener.AddressSkipListener;
@@ -37,12 +41,13 @@ public class loadCsvToStageStepConfig {
     public Step loadCsvToStageStep (
         JobRepository jobRepository, 
         PlatformTransactionManager txManager,
-        FlatFileItemReader<RowAddressCsv> reader,
+        SynchronizedItemStreamReader<RowAddressCsv> reader,
         AddressStageProcessor processor,
         @Qualifier("jdbcStageWriter") JdbcBatchItemWriter<AddressStage> jdbcStageWriter,
         AddressStepListener stepListener,
         AddressSkipListener skipListener,
         CountLineListener countLineListener,
+        AsyncTaskExecutor taskExecutor,
         @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
         return new StepBuilder("loadCsvToStageStep", jobRepository)
@@ -58,7 +63,15 @@ public class loadCsvToStageStepConfig {
         .skipLimit(SKIP_LIMIT)
         .listener(skipListener)
         .listener(countLineListener)
+        .taskExecutor(taskExecutor)
         .build();
+    }
+
+    @Bean
+    public AsyncTaskExecutor taskExecutor() {
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("spring_batch");
+        executor.setConcurrencyLimit(4);
+        return executor;
     }
 
     // Bean pour lire le fichier CSV et mapper les lignes en objets RowAddressCsv
@@ -73,6 +86,16 @@ public class loadCsvToStageStepConfig {
         .lineMapper(new AddressLineMapper())
         .saveState(true)
         .build();
+    }
+
+    @Bean
+    public SynchronizedItemStreamReader<RowAddressCsv> synchronizedCsvReader(
+        FlatFileItemReader<RowAddressCsv> csvReader
+    ){
+        SynchronizedItemStreamReader<RowAddressCsv> reader = 
+            new SynchronizedItemStreamReader<RowAddressCsv>(csvReader);
+
+        return reader;
     }
 
     // Bean pour écrire les objets AddressStage dans la base de données

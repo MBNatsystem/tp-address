@@ -1,7 +1,5 @@
 package fr.natsystem.tp_adresse_test.tasklet;
 
-import java.util.List;
-
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
