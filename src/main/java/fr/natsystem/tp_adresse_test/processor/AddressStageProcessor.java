@@ -28,7 +28,6 @@ public class AddressStageProcessor implements ItemProcessor<RowAddressCsv, Addre
 
     @Override
     public AddressStage process(RowAddressCsv address) {
-
         if (StringUtils.hasText(codePostal)
                 && !Objects.equals(codePostal, address.codePostal())) {
             return null;

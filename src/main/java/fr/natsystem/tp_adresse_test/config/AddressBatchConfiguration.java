@@ -15,14 +15,14 @@ public class AddressBatchConfiguration  {
 
     @Bean
     public Job importAddressesJob(JobRepository jobRepository,
-        @Qualifier("loadCsvToStageStep") Step loadCsvToStageStep,
+        @Qualifier("partitionStep") Step partitionStep,
         @Qualifier("detectDuplicatesAndConflictsStep") Step detectDuplicatesAndConflictsStep,
         @Qualifier("synchroPlanStep") Step synchroPlanStep,
         @Qualifier("finalImportStep") Step finalImportStep,
         AddressJobSummaryListener summaryListener
     ){
         return new JobBuilder("importAddressesJob", jobRepository)
-        .start(loadCsvToStageStep)
+        .start(partitionStep)
         .next(detectDuplicatesAndConflictsStep)
         .next(synchroPlanStep)
         .next(finalImportStep)

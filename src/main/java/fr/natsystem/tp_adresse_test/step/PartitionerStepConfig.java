@@ -2,9 +2,12 @@ package fr.natsystem.tp_adresse_test.step;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -18,26 +21,65 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import fr.natsystem.tp_adresse_test.Partitioner.CsvLinePartitioner;
 import fr.natsystem.tp_adresse_test.listener.AddressSkipListener;
 import fr.natsystem.tp_adresse_test.listener.AddressStepListener;
 import fr.natsystem.tp_adresse_test.listener.CountLineListener;
-import fr.natsystem.tp_adresse_test.model.RowAddressCsv;
 import fr.natsystem.tp_adresse_test.model.AddressStage;
+import fr.natsystem.tp_adresse_test.model.RowAddressCsv;
 import fr.natsystem.tp_adresse_test.processor.AddressStageProcessor;
 import fr.natsystem.tp_adresse_test.utils.AddressLineMapper;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-public class loadCsvToStageStepConfig {
+@Slf4j
+public class PartitionerStepConfig {
 
     private final int SKIP_LIMIT = 1000;
     
     @Bean
-    public Step loadCsvToStageStep (
+    public Step partitionStep(
+        JobRepository jobRepository, 
+        PlatformTransactionManager transactionManager,
+        Step loadCsvToStagePartitionedStep
+    ) {
+        return new StepBuilder("partitionStep", jobRepository)
+        .partitioner("slaveStep", partitioner(null))
+        .gridSize(4)
+        .step(loadCsvToStagePartitionedStep)
+        .taskExecutor(taskExecutor())
+        .build();
+    }
+
+    @Bean
+    public AsyncTaskExecutor taskExecutor() {
+        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("spring_batch");
+        executor.setConcurrencyLimit(4);
+        return executor;
+    }
+
+    @Bean
+    public CsvLinePartitioner partitioner(@Value("${batch.address.input-file}") Resource resource){
+        long totalLines=0;
+        try (Stream<String> lines = Files.lines(resource.getFile().toPath())) {
+            totalLines = lines.count();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+        return new CsvLinePartitioner((int) totalLines);
+    }
+    
+    @Bean
+    public Step loadCsvToStagePartitionedStep (
         JobRepository jobRepository, 
         PlatformTransactionManager txManager,
-        FlatFileItemReader<RowAddressCsv> reader,
+        @Qualifier("csvReaderP") FlatFileItemReader<RowAddressCsv> reader,
         AddressStageProcessor processor,
         @Qualifier("jdbcStageWriter") JdbcBatchItemWriter<AddressStage> jdbcStageWriter,
         AddressStepListener stepListener,
@@ -45,7 +87,7 @@ public class loadCsvToStageStepConfig {
         CountLineListener countLineListener,
         @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
-        return new StepBuilder("loadCsvToStageStep", jobRepository)
+        return new StepBuilder("loadCsvToStagePartitionedStep", jobRepository)
         .<RowAddressCsv, AddressStage>chunk(chunkSize)
         .reader(reader)
         .processor(processor)
@@ -62,16 +104,26 @@ public class loadCsvToStageStepConfig {
     }
 
     // Bean pour lire le fichier CSV et mapper les lignes en objets RowAddressCsv
+    @StepScope
     @Bean
-    public FlatFileItemReader<RowAddressCsv> csvReader(
-        @Value("${batch.address.input-file}") Resource inputFile
+    public FlatFileItemReader<RowAddressCsv> csvReaderP(
+        @Value("${batch.address.input-file}") Resource inputFile,
+        @Value("#{stepExecutionContext['startLine']}") Integer startLine,
+        @Value("#{stepExecutionContext['endLine']}") Integer endLine
     ){
+        log.info(
+            "Reader créé sur thread={} avec startLine={}, endLine={}",
+            Thread.currentThread().getName(),
+            startLine,
+            endLine
+        );
         return new FlatFileItemReaderBuilder<RowAddressCsv>()
-        .name("addressCsvReader")
+        .name("addressCsvReaderP")
         .resource(inputFile)
-        .linesToSkip(1)
+        .linesToSkip(startLine)
         .lineMapper(new AddressLineMapper())
-        .saveState(true)
+        //.saveState(true)
+        .maxItemCount(endLine - startLine + 1)
         .build();
     }
 
@@ -119,4 +171,5 @@ public class loadCsvToStageStepConfig {
                 .assertUpdates(false)
                 .build();
     }
+
 }

@@ -2,10 +2,11 @@ spring:
   application:
     name: tp-adresse-test
   datasource:
-    url: jdbc:sqlite:./data/adresses.db
+    url: jdbc:sqlite:./data/adresses-france.db
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 1
+      connection-timeout: 30000
   sql:
     init:
       mode: always
