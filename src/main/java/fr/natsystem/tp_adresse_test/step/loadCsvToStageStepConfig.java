@@ -17,9 +17,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import fr.natsystem.tp_adresse_test.config.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.listener.AddressSkipListener;
 import fr.natsystem.tp_adresse_test.listener.AddressStepListener;
 import fr.natsystem.tp_adresse_test.listener.CountLineListener;
@@ -27,11 +29,14 @@ import fr.natsystem.tp_adresse_test.model.RowAddressCsv;
 import fr.natsystem.tp_adresse_test.model.AddressStage;
 import fr.natsystem.tp_adresse_test.processor.AddressStageProcessor;
 import fr.natsystem.tp_adresse_test.utils.AddressLineMapper;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 @Configuration
 public class loadCsvToStageStepConfig {
 
     private final int SKIP_LIMIT = 1000;
+    private final AddressBatchProperties properties;
     
     @Bean
     public Step loadCsvToStageStep (
@@ -64,8 +69,16 @@ public class loadCsvToStageStepConfig {
     // Bean pour lire le fichier CSV et mapper les lignes en objets RowAddressCsv
     @Bean
     public FlatFileItemReader<RowAddressCsv> csvReader(
-        @Value("${batch.address.input-file}") Resource inputFile
     ){
+        Resource inputFile = new FileSystemResource(
+            properties
+            .getInputDirectory()
+            .resolve(
+                properties
+                .getExtractFileName()
+            )
+        );
+
         return new FlatFileItemReaderBuilder<RowAddressCsv>()
         .name("addressCsvReader")
         .resource(inputFile)
