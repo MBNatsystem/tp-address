@@ -2,7 +2,7 @@ spring:
   application:
     name: tp-adresse-test
   datasource:
-    url: jdbc:sqlite:./data/adresses.db
+    url: jdbc:sqlite:./data/adresses-france.db
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 1
@@ -11,12 +11,23 @@ spring:
       mode: always
       schema-locations: classpath:init.sql
 logging:
+  pattern:
+    console: "%-5level %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level %msg%n"
+  file:
+    name: data/logs/address-import.log
   level:
     root: INFO
     fr.natsystem.tp_adresse_test: INFO
 batch:
   address:
-    input-file: classpath:adresses-79.csv/adresses-france.csv
-    chunk-size: 10000
+    input-directory: data/csv/traitement
+    archive-directory: data/csv/archive
+    download-enabled: false
+    download-url: https://adresse.data.gouv.fr/data/ban/adresses/latest/csv/adresses-79.csv.gz
+    download-file-name: adresses-france.csv.gz
+    extract-file-name: adresses-frances.csv
+    report-file: data/rapport/rapport.txt
+    chunk-size: 5000
     upsert-sql: classpath:sql/upsert-address.sql
     insert-stage-sql : classpath:sql/insert-address.sql

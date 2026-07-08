@@ -18,7 +18,6 @@ public class AddressStage {
     private Integer lineNumber;
     private String lineHash;
 
-    //@Pattern(regexp = "^\\d{5}_[A-Za-z0-9]{4,8}_\\d{5}(?:_[A-Za-z0-9_ -]+)?$", message = "id invalide")
     private String id;
     private String idFantoir;
     private Integer numero;

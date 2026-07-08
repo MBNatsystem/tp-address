@@ -2,7 +2,6 @@ package fr.natsystem.tp_adresse_test.step;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.sql.DataSource;
 
@@ -18,11 +17,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import fr.natsystem.tp_adresse_test.config.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.listener.AddressSkipListener;
 import fr.natsystem.tp_adresse_test.listener.AddressStepListener;
 import fr.natsystem.tp_adresse_test.listener.CountLineListener;
@@ -30,9 +29,14 @@ import fr.natsystem.tp_adresse_test.model.RowAddressCsv;
 import fr.natsystem.tp_adresse_test.model.AddressStage;
 import fr.natsystem.tp_adresse_test.processor.AddressStageProcessor;
 import fr.natsystem.tp_adresse_test.utils.AddressLineMapper;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 @Configuration
 public class loadCsvToStageStepConfig {
+
+    private final int SKIP_LIMIT = 1000;
+    private final AddressBatchProperties properties;
     
     @Bean
     public Step loadCsvToStageStep (
@@ -44,42 +48,37 @@ public class loadCsvToStageStepConfig {
         AddressStepListener stepListener,
         AddressSkipListener skipListener,
         CountLineListener countLineListener,
-        @Value("${batch.address.chunk-size:2000}") int chunkSize
+        @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
         return new StepBuilder("loadCsvToStageStep", jobRepository)
         .<RowAddressCsv, AddressStage>chunk(chunkSize)
         .reader(reader)
         .processor(processor)
         .writer(jdbcStageWriter)
-        //.taskExecutor(taskExecutor())
         .listener(stepListener)
         .transactionManager(txManager)
         .faultTolerant()
         .skip(ValidationException.class)
         .skip(IllegalArgumentException.class)
-        .skipLimit(1001)
+        .skipLimit(SKIP_LIMIT)
         .listener(skipListener)
         .listener(countLineListener)
         .build();
     }
 
-    @Bean
-    public AsyncTaskExecutor taskExecutor(){
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(4);
-        executor.setThreadNamePrefix("loadCsvToStageStep-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.initialize();
-        return executor;
-    }
-
+    // Bean pour lire le fichier CSV et mapper les lignes en objets RowAddressCsv
     @Bean
     public FlatFileItemReader<RowAddressCsv> csvReader(
-        @Value("${batch.address.input-file}") Resource inputFile
     ){
+        Resource inputFile = new FileSystemResource(
+            properties
+            .getInputDirectory()
+            .resolve(
+                properties
+                .getExtractFileName()
+            )
+        );
+
         return new FlatFileItemReaderBuilder<RowAddressCsv>()
         .name("addressCsvReader")
         .resource(inputFile)
@@ -89,6 +88,7 @@ public class loadCsvToStageStepConfig {
         .build();
     }
 
+    // Bean pour écrire les objets AddressStage dans la base de données
     @Bean
     public JdbcBatchItemWriter<AddressStage> jdbcStageWriter(
             DataSource dataSource,

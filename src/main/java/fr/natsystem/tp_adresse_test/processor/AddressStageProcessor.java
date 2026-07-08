@@ -2,9 +2,9 @@ package fr.natsystem.tp_adresse_test.processor;
 
 import fr.natsystem.tp_adresse_test.model.AddressStage;
 import fr.natsystem.tp_adresse_test.model.RowAddressCsv;
+import fr.natsystem.tp_adresse_test.utils.Hash;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.openhft.hashing.LongHashFunction;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
@@ -77,14 +77,7 @@ public class AddressStageProcessor implements ItemProcessor<RowAddressCsv, Addre
     }
 
     private String buildHash(RowAddressCsv addressCsv) {
-        //return addressCsv.rawLine();
-        return fastHash(addressCsv.rawLine());
-    }
-
-    private static final LongHashFunction HASHER = LongHashFunction.xx3();
-
-    private String fastHash(String value) {
-        long hash = HASHER.hashChars(value);
-        return Long.toUnsignedString(hash, 16);
+        Hash h = new Hash();
+        return h.fastHash(addressCsv.rawLine());
     }
 }
