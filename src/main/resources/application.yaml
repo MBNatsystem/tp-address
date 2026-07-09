@@ -1,4 +1,10 @@
 spring:
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+      platform: sqlite
   application:
     name: tp-adresse-test
   datasource:
@@ -10,6 +16,7 @@ spring:
     init:
       mode: always
       schema-locations: classpath:init.sql
+
 logging:
   pattern:
     console: "%-5level %msg%n"
@@ -23,7 +30,7 @@ batch:
   address:
     input-directory: data/csv/traitement
     archive-directory: data/csv/archive
-    download-enabled: false
+    download-enabled: true
     download-url: https://adresse.data.gouv.fr/data/ban/adresses/latest/csv/adresses-79.csv.gz
     download-file-name: adresses-france.csv.gz
     extract-file-name: adresses-frances.csv
