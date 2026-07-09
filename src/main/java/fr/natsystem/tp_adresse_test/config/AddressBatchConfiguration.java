@@ -1,5 +1,7 @@
 package fr.natsystem.tp_adresse_test.config;
 
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.configuration.annotation.EnableJdbcJobRepository;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -12,6 +14,8 @@ import org.springframework.context.annotation.Configuration;
 import fr.natsystem.tp_adresse_test.listener.AddressJobSummaryListener;
 
 @Configuration
+@EnableBatchProcessing
+@EnableJdbcJobRepository
 @EnableConfigurationProperties(AddressBatchProperties.class)
 public class AddressBatchConfiguration  {
 
@@ -26,32 +30,11 @@ public class AddressBatchConfiguration  {
         AddressJobSummaryListener summaryListener
     ){
         return new JobBuilder("importAddressesJob", jobRepository)
-        .start(prepareInputFileStep)
-            .on("NO_INPUT_FILE").end("NO_INPUT_FILE")
-
-            .from(prepareInputFileStep)
-                .on("MULTIPLE_FILES_FOUND").fail()
-
-            .from(prepareInputFileStep)
-                .on("*").to(checkCsvFormatStep)
-            
-            .from(checkCsvFormatStep)
-                .on("INVALID_FILE_FORMAT").fail()
-            
-            .from(checkCsvFormatStep)
-                .on("*").to(loadCsvToStageStep)
-
-            .from(loadCsvToStageStep)
-                .on("*").to(detectDuplicatesAndConflictsStep)
-
-            .from(detectDuplicatesAndConflictsStep)
-                .on("*").to(synchroPlanStep)
-
-            .from(synchroPlanStep)
-                .on("*").to(finalImportStep)
-
-            .end()
-            .listener(summaryListener)
-            .build();
+        .start(loadCsvToStageStep)
+        .next(detectDuplicatesAndConflictsStep)
+        .next(synchroPlanStep)
+        .next(finalImportStep)
+        .listener(summaryListener)
+        .build();
     }
 }

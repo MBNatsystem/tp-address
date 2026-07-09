@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
@@ -30,13 +29,8 @@ public class AddressJobSummaryListener implements JobExecutionListener {
     private final JdbcTemplate jdbcTemplate;
     private final AddressBatchProperties properties;
 
-    private static final String NO_INPUT_FILE = "NO_INPUT_FILE";
-    private static final String MULTIPLE_FILES_FOUND = "MULTIPLE_FILES_FOUND";
-    private static final String INVALID_FILE_FORMAT = "INVALID_FILE_FORMAT";
-
     private static final String LOAD_CSV_TO_STAGE_STEP = "loadCsvToStageStep";
-    private static final String PREPARE_INPPUT_FILE_STEP = "prepareInputFileStep";
-    private static final String CHECK_CSV_FORMAT_STEP = "checkCsvFormatStep";
+
     private static final String CHECKSUM = "CHECKSUM";
 
     @Override
@@ -44,49 +38,22 @@ public class AddressJobSummaryListener implements JobExecutionListener {
 
         SummaryCounts summaryCounts = getSummaryCounts();
 
-        updateExitStatus(jobExecution);
-
-        if(jobExecution.getStatus()==BatchStatus.COMPLETED && !NO_INPUT_FILE.equals(jobExecution.getExitStatus().getExitCode())){
-            moveCsvFile(jobExecution);
-        }
-
+        moveCsvFile(jobExecution);
+  
         generateReport(jobExecution, summaryCounts);
 
         logSummary(jobExecution, summaryCounts);
 
     }
 
-    private void updateExitStatus(JobExecution jobExecution) {
-        Optional<StepExecution> inputFileStep = findStep(jobExecution,PREPARE_INPPUT_FILE_STEP);
-        Optional<StepExecution> checkCsvFormatStep = findStep(jobExecution, CHECK_CSV_FORMAT_STEP);
-        
-        if (inputFileStep.isPresent()
-                && MULTIPLE_FILES_FOUND.equals(inputFileStep.get().getExitStatus().getExitCode())) {
-
-            jobExecution.setExitStatus(new ExitStatus(MULTIPLE_FILES_FOUND));
-        }
-
-        if (checkCsvFormatStep.isPresent()
-                && INVALID_FILE_FORMAT.equals(checkCsvFormatStep.get().getExitStatus().getExitCode())) {
-
-            jobExecution.setExitStatus(new ExitStatus(INVALID_FILE_FORMAT));
-        }
-    }
-
     private void generateReport(JobExecution jobExecution, SummaryCounts summaryCounts) {
 
         StringBuilder report = new StringBuilder();
 
-        if(NO_INPUT_FILE.equals(jobExecution.getExitStatus().getExitCode())){
-            report.append("Aucun fichier à traiter");
-            write(report);
-            return;
-        }
-
         String checksum = "";
 
         if(jobExecution.getStatus().equals(BatchStatus.COMPLETED)){
-            checksum = jobExecution.getExecutionContext().getString(CHECKSUM);
+            checksum = jobExecution.getJobParameters().getString(CHECKSUM);
         }
 
         Optional<StepExecution> loadStepOptional = findStep(jobExecution, LOAD_CSV_TO_STAGE_STEP);
