@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class TpAdresseTestApplication {
 
 	public static void main(String[] args) {
-		//SpringApplication.run(TpAdresseTestApplication.class, args);
 		SpringApplication.run(TpAdresseTestApplication.class, args);
 	}
 
