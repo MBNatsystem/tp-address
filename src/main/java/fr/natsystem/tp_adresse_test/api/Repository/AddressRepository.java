@@ -19,17 +19,14 @@ public interface AddressRepository extends
     Page<Address> findAll(Specification<Address> spec, Pageable pageable);
 
     @Query(value = """
-        SELECT baf.*,
-               (
-                 (lat - :lat) * (lat - :lat) +
-                 (lon - :lon) * (lon - :lon)
-               ) AS distance
-        FROM places_index pi
-        JOIN ban_address_final baf ON pi.id=baf.rowid
-        WHERE pi.min_lat BETWEEN :minLat AND :maxLat
-        AND pi.min_lon BETWEEN :minLon AND :maxLon
-        ORDER BY distance ASC
-        LIMIT 1
+        SELECT *
+        FROM ban_address_final
+        WHERE lat BETWEEN :minLat AND :maxLat
+        AND lon BETWEEN :minLon AND :maxLon
+        ORDER BY
+            ((lat - :lat) * (lat - :lat) +
+            (lon - :lon) * (lon - :lon))
+        LIMIT 1;
         """, nativeQuery = true)
     Address findNearestAddress(
         double lat,
@@ -42,9 +39,8 @@ public interface AddressRepository extends
 
     @Query(value = """
         SELECT baf.*
-        FROM address_fts
-        JOIN ban_address_final baf ON baf.rowid = address_fts.rowid
-        WHERE address_fts MATCH :fts
+        FROM ban_address_final baf
+        WHERE baf.search_vector @@ websearch_to_tsquery('simple', :fts)
         AND (:numero IS NULL OR baf.numero = :numero)
         AND (:codePostal IS NULL OR baf.code_postal = :codePostal)
         LIMIT 10

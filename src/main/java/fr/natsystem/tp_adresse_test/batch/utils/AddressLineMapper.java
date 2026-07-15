@@ -4,7 +4,7 @@ import org.springframework.batch.infrastructure.item.file.LineMapper;
 import org.springframework.batch.infrastructure.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.infrastructure.item.file.transform.FieldSet;
 
-import fr.natsystem.tp_adresse_test.batch.model.RowAddressCsv;
+import fr.natsystem.tp_adresse_test.batch.ban.model.RowAddressCsv;
 
 public class AddressLineMapper implements LineMapper<RowAddressCsv> {
     

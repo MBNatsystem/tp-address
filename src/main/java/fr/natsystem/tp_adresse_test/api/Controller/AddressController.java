@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import fr.natsystem.tp_adresse_test.api.DTO.AddressDto;
 import fr.natsystem.tp_adresse_test.api.DTO.BatchParam;
 import fr.natsystem.tp_adresse_test.api.Service.AddressService;
-import fr.natsystem.tp_adresse_test.batch.config.AddressBatchProperties;
+import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.utils.Constant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,9 +110,9 @@ public class AddressController {
 
         
         execution = jobOperator.start(preparationJob, params);
-
+        log.info("execution.getStatus():{}",execution.getStatus());
         if(!execution.getStatus().isUnsuccessful()){
-
+            log.info("Constant.CHECKSUM:{}",execution.getExecutionContext().get(Constant.CHECKSUM));
             if (execution.getExecutionContext().get(Constant.CHECKSUM)==null){
                 return ResponseEntity.accepted().body(Constant.NO_INPUT_FILE);
             }
@@ -130,6 +130,7 @@ public class AddressController {
     }catch(JobInstanceAlreadyCompleteException e){
         return ResponseEntity.status(HttpStatus.CONFLICT).body("Ce fichier a déjà été traité");
     }catch(JobExecutionAlreadyRunningException already){
+        log.error(already.getMessage());
         return ResponseEntity.status(HttpStatus.LOCKED).body("Execution deja en cours");
     }finally{
         jobLock.unlock();
