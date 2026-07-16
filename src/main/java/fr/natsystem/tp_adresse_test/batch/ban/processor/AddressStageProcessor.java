@@ -2,7 +2,7 @@ package fr.natsystem.tp_adresse_test.batch.ban.processor;
 
 import fr.natsystem.tp_adresse_test.batch.ban.model.AddressStage;
 import fr.natsystem.tp_adresse_test.batch.ban.model.RowAddressCsv;
-import fr.natsystem.tp_adresse_test.batch.utils.Hash;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Hash;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,7 +77,6 @@ public class AddressStageProcessor implements ItemProcessor<RowAddressCsv, Addre
     }
 
     private String buildHash(RowAddressCsv addressCsv) {
-        Hash h = new Hash();
-        return h.fastHash(addressCsv.rawLine());
+        return Hash.fastHash(addressCsv.rawLine());
     }
 }

@@ -26,15 +26,15 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import fr.natsystem.tp_adresse_test.batch.ban.LineMapper.AddressLineMapper;
 import fr.natsystem.tp_adresse_test.batch.ban.Partitioner.CsvLinePartitioner;
 import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
-import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressSkipListener;
 import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressStepListener;
 import fr.natsystem.tp_adresse_test.batch.ban.listener.CountLineListener;
 import fr.natsystem.tp_adresse_test.batch.ban.model.AddressStage;
 import fr.natsystem.tp_adresse_test.batch.ban.model.RowAddressCsv;
 import fr.natsystem.tp_adresse_test.batch.ban.processor.AddressStageProcessor;
-import fr.natsystem.tp_adresse_test.batch.utils.AddressLineMapper;
+import fr.natsystem.tp_adresse_test.batch.common.Listener.AddressSkipListener;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -144,12 +144,7 @@ public class PartitionerStepConfig {
                 .getExtractFileName()
             )
         );
-        log.info(
-            "Reader créé sur thread={} avec startLine={}, endLine={}",
-            Thread.currentThread().getName(),
-            startLine,
-            endLine
-        );
+
         return new FlatFileItemReaderBuilder<RowAddressCsv>()
         .name("addressCsvReaderP")
         .resource(inputFile)

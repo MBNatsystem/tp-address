@@ -158,8 +158,6 @@ public class FinalImportTasklet implements Tasklet {
                 ON s.stage_id = p.stage_id
             WHERE p.action = 'INSERT';
         """);
-
-        jdbcTemplate.execute("DROP TABLE IF EXISTS address_staging");
         
         return RepeatStatus.FINISHED;
 
