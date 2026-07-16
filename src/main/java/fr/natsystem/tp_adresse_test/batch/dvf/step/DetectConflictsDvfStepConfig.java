@@ -9,18 +9,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-
 @Configuration
-public class SynchroPlanDvfStepConfig {
-    @Bean
-    public Step synchroPlanDvfStep(
-            JobRepository jobRepository,
-            PlatformTransactionManager transactionManager,
-            @Qualifier("synchroPlanDvfTasklet") Tasklet tasklet
-    ) {
-        return new StepBuilder("synchroPlanDvfStep", jobRepository)
+public class DetectConflictsDvfStepConfig {
+    
+        @Bean
+        public Step detectConflictsDvfStep(
+                JobRepository jobRepository,
+                PlatformTransactionManager transactionManager,
+                @Qualifier("detectConflictsDvfTasklet") Tasklet tasklet
+        ) {
+        return new StepBuilder("detectConflictsDvfStep", jobRepository)
                 .tasklet(tasklet, transactionManager)
                 .build();
-    }
+        }
 }
-

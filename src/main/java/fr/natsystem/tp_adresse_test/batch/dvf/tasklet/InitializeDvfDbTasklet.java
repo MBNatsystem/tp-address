@@ -22,11 +22,7 @@ public class InitializeDvfDbTasklet implements Tasklet{
 
         jdbcTemplate.execute("DROP TABLE IF EXISTS row_address_dvf");
 
-        jdbcTemplate.execute("DROP TABLE IF EXISTS address_reject");
-
-        jdbcTemplate.execute("DROP TABLE IF EXISTS address_to_insert");
-
-        jdbcTemplate.execute("DROP TABLE IF EXISTS address_sync_plan");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS address_stats");
 
         jdbcTemplate.execute("""
             CREATE UNLOGGED TABLE IF NOT EXISTS row_address_dvf (
@@ -88,47 +84,6 @@ public class InitializeDvfDbTasklet implements Tasklet{
                 latitude NUMERIC(11, 8) NOT NULL
             );
             """);
-        
-        jdbcTemplate.execute("""
-
-            CREATE UNLOGGED TABLE IF NOT EXISTS address_reject (
-
-                reject_id BIGSERIAL PRIMARY KEY,
-
-                reject_type VARCHAR(64) NOT NULL,
-                reject_reason VARCHAR(500) NOT NULL,
-
-                line_number INT NULL,
-                line_hash TEXT,
-                stage_id BIGINT,
-                id TEXT,
-
-                occurrence_count INTEGER,
-
-                created_at  TIMESTAMPTZ DEFAULT NOW()
-            );
-                """);
-
-        jdbcTemplate.execute("""
-            CREATE UNLOGGED TABLE IF NOT EXISTS address_to_insert (
-                stage_id INTEGER PRIMARY KEY,
-                id TEXT NOT NULL,
-                line_hash TEXT NOT NULL,
-                line_number INTEGER NOT NULL,
-                created_at TIMESTAMPTZ DEFAULT NOW()
-            );
-                """);
-        
-        jdbcTemplate.execute("""
-            CREATE UNLOGGED TABLE IF NOT EXISTS address_sync_plan (
-                id TEXT PRIMARY KEY,
-                stage_id BIGINT,
-                action TEXT NOT NULL,
-                old_hash TEXT,
-                new_hash TEXT,
-                created_at TIMESTAMPTZ DEFAULT NOW()
-            );
-                """);
         
         return RepeatStatus.FINISHED;
     }

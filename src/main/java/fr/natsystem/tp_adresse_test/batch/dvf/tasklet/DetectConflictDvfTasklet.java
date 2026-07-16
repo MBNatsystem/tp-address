@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
 
-@Component("detectDuplicatesAndConflictsDvfTasklet")
+@Component("detectConflictsDvfTasklet")
 @AllArgsConstructor
-public class DetectDuplicatesAndConflictDvfTasklet implements Tasklet{
+public class DetectConflictDvfTasklet implements Tasklet{
     
     private final JdbcTemplate jdbcTemplate;
 
@@ -20,13 +20,11 @@ public class DetectDuplicatesAndConflictDvfTasklet implements Tasklet{
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
         jdbcTemplate.execute("""
-            CREATE INDEX IF NOT EXISTS idx_row_address_dvf_id
-            ON row_address_dvf (id);
+            CREATE INDEX IF NOT EXISTS idx_row_address_dvf_id_line_hash
+            ON row_address_dvf (id, line_hash);
             """);
 
         jdbcTemplate.execute("ANALYZE row_address_dvf");
-
-        jdbcTemplate.execute("DROP TABLE IF EXISTS address_stats");
 
         jdbcTemplate.execute("""
             CREATE UNLOGGED TABLE address_stats AS

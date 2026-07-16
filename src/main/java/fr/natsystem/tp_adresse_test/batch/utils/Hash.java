@@ -16,7 +16,7 @@ import net.openhft.hashing.LongHashFunction;
 public class Hash {
     private static final LongHashFunction HASHER = LongHashFunction.xx3();
 
-    public String fastHash(String value) {
+    public static String fastHash(String value) {
         long hash = HASHER.hashChars(value);
         return Long.toUnsignedString(hash, 16);
     }

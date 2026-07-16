@@ -27,12 +27,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressStepListener;
-import fr.natsystem.tp_adresse_test.batch.ban.listener.CountLineListener;
 import fr.natsystem.tp_adresse_test.batch.dvf.config.DvfPropertiesConfiguration;
 import fr.natsystem.tp_adresse_test.batch.dvf.listener.DvfSkipListener;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.DvfStage;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.RowAddressDvf;
-import fr.natsystem.tp_adresse_test.batch.dvf.processor.DvfStageProcessor;
+import fr.natsystem.tp_adresse_test.batch.dvf.processor.DvfCustomStageProcessor;
 import fr.natsystem.tp_adresse_test.batch.utils.DvfLineMapper;
 import lombok.AllArgsConstructor;
 
@@ -53,7 +52,6 @@ public class LoadDvfStepConfiguration {
         JdbcBatchItemWriter<DvfStage> dvfJdbcStageWriter,
         AddressStepListener stepListener,
         DvfSkipListener skipListener,
-        CountLineListener countLineListener,
         @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
         return new StepBuilder("loadDvfStep", jobRepository)
@@ -67,7 +65,7 @@ public class LoadDvfStepConfiguration {
         .skip(IllegalArgumentException.class)
         .skipLimit(SKIP_LIMIT)
         .listener(skipListener)
-        .listener(stepListener)
+        .listener(stepListener) //TODO ne sert pas pour l'instant
         .build();
     }
 
@@ -83,14 +81,14 @@ public class LoadDvfStepConfiguration {
     }
 
     @Bean
-    public DvfStageProcessor dvfStageProcessor(){
-        return new DvfStageProcessor();
+    public DvfCustomStageProcessor dvfCustomStageProcessor(){
+        return new DvfCustomStageProcessor();
     }
 
     @Bean
     public CompositeItemProcessor<RowAddressDvf,DvfStage> dvfProcessor(
         BeanValidatingItemProcessor<RowAddressDvf> validatingItemProcessor,
-        DvfStageProcessor dvfStageProcessor
+        DvfCustomStageProcessor dvfStageProcessor
     ){
         return new CompositeItemProcessorBuilder<RowAddressDvf,DvfStage>()
             .delegates(validatingItemProcessor, dvfStageProcessor)
@@ -121,7 +119,7 @@ public class LoadDvfStepConfiguration {
             DataSource dataSource,
             @Value("${batch.dvf.insert-sql}") Resource insertDvfSql
     ) throws IOException {
-
+        
         String sql = insertDvfSql.getContentAsString(StandardCharsets.UTF_8);
 
         return new JdbcBatchItemWriterBuilder<DvfStage>()

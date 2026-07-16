@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressJobSummaryListener;
+import fr.natsystem.tp_adresse_test.batch.dvf.listener.AddressJobSummaryDvfListener;
 
 @Configuration
 public class DvfBatchConfiguration {
@@ -18,16 +18,14 @@ public class DvfBatchConfiguration {
         JobRepository jobRepository,
         @Qualifier("initializeDvfDbStep") Step initializeDvfDbStep,
         Step loadDvfStep,
-        @Qualifier("detectDuplicatesAndConflictsDvfStep") Step detectDuplicatesAndConflictsDvfStep,
-        @Qualifier("synchroPlanDvfStep") Step synchroPlanDvfStep,
+        @Qualifier("detectConflictsDvfStep") Step detectConflictsDvfStep,
         @Qualifier("finalImportDvfStep") Step finalImportDvfStep,
-        AddressJobSummaryListener summaryListener
+        AddressJobSummaryDvfListener summaryListener
     ){
         return new JobBuilder("importDvfJob",jobRepository)
         .start(initializeDvfDbStep)
         .next(loadDvfStep)
-        .next(detectDuplicatesAndConflictsDvfStep)
-        //.next(synchroPlanDvfStep)
+        .next(detectConflictsDvfStep)
         .next(finalImportDvfStep)
         .listener(summaryListener)
         .build();

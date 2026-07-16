@@ -77,7 +77,6 @@ public class AddressStageProcessor implements ItemProcessor<RowAddressCsv, Addre
     }
 
     private String buildHash(RowAddressCsv addressCsv) {
-        Hash h = new Hash();
-        return h.fastHash(addressCsv.rawLine());
+        return Hash.fastHash(addressCsv.rawLine());
     }
 }

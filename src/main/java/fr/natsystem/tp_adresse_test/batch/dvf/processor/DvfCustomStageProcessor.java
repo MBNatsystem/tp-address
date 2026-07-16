@@ -7,7 +7,7 @@ import fr.natsystem.tp_adresse_test.batch.dvf.model.DvfStage;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.RowAddressDvf;
 import fr.natsystem.tp_adresse_test.batch.utils.Hash;
 
-public class DvfStageProcessor implements ItemProcessor<RowAddressDvf,DvfStage>{
+public class DvfCustomStageProcessor implements ItemProcessor<RowAddressDvf,DvfStage>{
 
     @Override
     public @Nullable DvfStage process(RowAddressDvf rowDvf) throws Exception {
@@ -78,7 +78,6 @@ public class DvfStageProcessor implements ItemProcessor<RowAddressDvf,DvfStage>{
     }
 
     private String buildHash(RowAddressDvf dvf) {
-        Hash h = new Hash();
-        return h.fastHash(dvf.rawLine());
+        return Hash.fastHash(dvf.rawLine());
     }
 }
