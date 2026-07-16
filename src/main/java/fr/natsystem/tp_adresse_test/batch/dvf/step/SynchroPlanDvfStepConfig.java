@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.step;
+package fr.natsystem.tp_adresse_test.batch.dvf.step;
 
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
@@ -9,16 +9,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+
 @Configuration
-public class PrepareInputFileStepConfig {
+public class SynchroPlanDvfStepConfig {
     @Bean
-    public Step prepareInputFileStep(
+    public Step synchroPlanDvfStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
-            @Qualifier("prepareInputFileTasklet") Tasklet tasklet
+            @Qualifier("synchroPlanDvfTasklet") Tasklet tasklet
     ) {
-    return new StepBuilder("prepareInputFileStep", jobRepository)
-            .tasklet(tasklet, transactionManager)
-            .build();
+        return new StepBuilder("synchroPlanDvfStep", jobRepository)
+                .tasklet(tasklet, transactionManager)
+                .build();
     }
 }
+

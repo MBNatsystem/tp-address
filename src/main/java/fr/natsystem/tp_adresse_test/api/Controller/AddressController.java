@@ -17,11 +17,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -42,6 +44,7 @@ public class AddressController {
     private final JobOperator jobOperator;
     private final Job importAddressesJob;
     private final Job preparationJob;
+    private final Job importDvfJob;
     private final AddressBatchProperties batchProperties;
     private ReentrantLock jobLock = new ReentrantLock();
 
@@ -92,51 +95,76 @@ public class AddressController {
 
         try{
 
-        Boolean download = parameters.downloadEnabled()!=null
-            ? parameters.downloadEnabled()
-            : batchProperties.getDownloadEnabled();
-        
-        URI downloadUrl = parameters.downloadUrl()!=null
-            ? parameters.downloadUrl()
-            : batchProperties.getDownloadUrl();
+            Boolean download = parameters.downloadEnabled()!=null
+                ? parameters.downloadEnabled()
+                : batchProperties.getDownloadEnabled();
+            
+            URI downloadUrl = parameters.downloadUrl()!=null
+                ? parameters.downloadUrl()
+                : batchProperties.getDownloadUrl();
 
-        JobParameters params = new JobParametersBuilder()
-            .addLong("runId", System.currentTimeMillis(), true)
-            .addString(Constant.DOWNLOADED,download.toString(), false)
-            .addString(Constant.DOWNLOAD_URL, downloadUrl.toString(), false)
-            .toJobParameters();
-        
-        JobExecution execution;
+            JobParameters params = new JobParametersBuilder()
+                .addLong("runId", System.currentTimeMillis(), true)
+                .addString(Constant.DOWNLOADED,download.toString(), false)
+                .addString(Constant.DOWNLOAD_URL, downloadUrl.toString(), false)
+                .toJobParameters();
+            
+            JobExecution execution;
 
-        
-        execution = jobOperator.start(preparationJob, params);
-        log.info("execution.getStatus():{}",execution.getStatus());
-        if(!execution.getStatus().isUnsuccessful()){
-            log.info("Constant.CHECKSUM:{}",execution.getExecutionContext().get(Constant.CHECKSUM));
-            if (execution.getExecutionContext().get(Constant.CHECKSUM)==null){
-                return ResponseEntity.accepted().body(Constant.NO_INPUT_FILE);
+            
+            execution = jobOperator.start(preparationJob, params);
+            log.info("execution.getStatus():{}",execution.getStatus());
+            if(!execution.getStatus().isUnsuccessful()){
+                log.info("Constant.CHECKSUM:{}",execution.getExecutionContext().get(Constant.CHECKSUM));
+                if (execution.getExecutionContext().get(Constant.CHECKSUM)==null){
+                    return ResponseEntity.accepted().body(Constant.NO_INPUT_FILE);
+                }
+
+                JobParameters importParams = new JobParametersBuilder()
+                .addString(Constant.CHECKSUM, execution.getExecutionContext().getString(Constant.CHECKSUM), true)
+                .toJobParameters();
+                jobOperator.start(importAddressesJob, importParams);
+
+                return ResponseEntity.accepted().body("COMPLETED");
+                
             }
 
-            JobParameters importParams = new JobParametersBuilder()
-            .addString(Constant.CHECKSUM, execution.getExecutionContext().getString(Constant.CHECKSUM), true)
-            .toJobParameters();
-            jobOperator.start(importAddressesJob, importParams);
-
-            return ResponseEntity.accepted().body("COMPLETED");
-            
+            return ResponseEntity.internalServerError().body(execution.getStatus() + " " + execution.getExitStatus().getExitCode());
+        }catch(JobInstanceAlreadyCompleteException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ce fichier a déjà été traité");
+        }catch(JobExecutionAlreadyRunningException already){
+            log.error(already.getMessage());
+            return ResponseEntity.status(HttpStatus.LOCKED).body("Execution deja en cours");
+        }finally{
+            jobLock.unlock();
         }
 
-        return ResponseEntity.internalServerError().body(execution.getStatus() + " " + execution.getExitStatus().getExitCode());
-    }catch(JobInstanceAlreadyCompleteException e){
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Ce fichier a déjà été traité");
-    }catch(JobExecutionAlreadyRunningException already){
-        log.error(already.getMessage());
-        return ResponseEntity.status(HttpStatus.LOCKED).body("Execution deja en cours");
-    }finally{
-        jobLock.unlock();
     }
 
+    @PostMapping("dvf/run")
+    public ResponseEntity<?> postRunDvf() {
+        JobParameters jobParameters = new JobParametersBuilder().addLong(
+            "runId",System.currentTimeMillis(), true
+        ).toJobParameters();
+
+                try {
+                    jobOperator.start(importDvfJob, jobParameters);
+                } catch (JobInstanceAlreadyCompleteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (JobExecutionAlreadyRunningException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InvalidJobParametersException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (JobRestartException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+        return ResponseEntity.accepted().build();
     }
+    
     
     
 }

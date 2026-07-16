@@ -144,12 +144,7 @@ public class PartitionerStepConfig {
                 .getExtractFileName()
             )
         );
-        log.info(
-            "Reader créé sur thread={} avec startLine={}, endLine={}",
-            Thread.currentThread().getName(),
-            startLine,
-            endLine
-        );
+
         return new FlatFileItemReaderBuilder<RowAddressCsv>()
         .name("addressCsvReaderP")
         .resource(inputFile)

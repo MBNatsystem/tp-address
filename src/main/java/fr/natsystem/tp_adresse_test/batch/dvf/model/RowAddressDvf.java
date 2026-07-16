@@ -3,10 +3,14 @@ package fr.natsystem.tp_adresse_test.batch.dvf.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotNull;
+
 public record RowAddressDvf(
 
     String rawLine,
     long lineNumber,
+    
+    @NotNull
     String idMutation,
     LocalDate dateMutation,
     Integer numeroDisposition,
@@ -45,7 +49,11 @@ public record RowAddressDvf(
     String codeNatureCultureSpeciale,
     String natureCultureSpeciale,
     BigDecimal surfaceTerrain,
+    
+    @NotNull
     BigDecimal longitude,
+    
+    @NotNull
     BigDecimal latitude
 ) {
     

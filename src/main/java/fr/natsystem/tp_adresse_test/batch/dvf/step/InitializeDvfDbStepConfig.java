@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.step;
+package fr.natsystem.tp_adresse_test.batch.dvf.step;
 
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
@@ -10,15 +10,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class DeDuplicateStepConfig {
-    
+public class InitializeDvfDbStepConfig {
+        
         @Bean
-        public Step detectDuplicatesAndConflictsStep(
+        public Step initializeDvfDbStep(
                 JobRepository jobRepository,
                 PlatformTransactionManager transactionManager,
-                @Qualifier("detectDuplicatesAndConflictsTasklet") Tasklet tasklet
+                @Qualifier("initializeDvfDbTasklet") Tasklet tasklet
         ) {
-        return new StepBuilder("detectDuplicatesAndConflictsStep", jobRepository)
+        return new StepBuilder("initializeDvfDbStep", jobRepository)
                 .tasklet(tasklet, transactionManager)
                 .build();
         }
