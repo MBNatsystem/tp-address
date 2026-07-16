@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import fr.natsystem.tp_adresse_test.batch.ban.model.SummaryCounts;
-import fr.natsystem.tp_adresse_test.batch.utils.Constant;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,9 +30,9 @@ public class AddressJobSummaryDvfListener implements JobExecutionListener {
     }
 
     private void logSummary(JobExecution jobExecution, SummaryCounts summaryCounts) {
-        Optional<StepExecution> loadStepOptional = findStep(jobExecution, Constant.LOAD_CSV_TO_STAGE_STEP);
+        Optional<StepExecution> loadStepOptional = findStep(jobExecution, Constant.DVF_LOAD_STEP);
 
-        log.info("========== RÉCAP IMPORT ADRESSES ==========");
+        log.info("========== RÉCAP IMPORT DVF ==========");
         
         if (loadStepOptional.isPresent()) {
             StepExecution loadStep = loadStepOptional.get();
@@ -45,11 +45,6 @@ public class AddressJobSummaryDvfListener implements JobExecutionListener {
         log.info("===========================================");
         log.info("Lignes retenues pour insertion : {}", summaryCounts.toInsert());
         log.info("Doublons rejetés : {}", summaryCounts.duplicates());
-        log.info("Conflits métier : {}", summaryCounts.conflicts());
-        log.info("===========================================");
-        log.info("Lignes insérées : {}", summaryCounts.inserted());
-        log.info("Lignes modifiées : {}", summaryCounts.updated());
-        log.info("Lignes supprimées : {}", summaryCounts.deleted());
         log.info("===========================================");
         log.info("Statut final: {}", jobExecution.getStatus());
         log.info("Job ExitStatus: {}", jobExecution.getExitStatus().getExitCode());

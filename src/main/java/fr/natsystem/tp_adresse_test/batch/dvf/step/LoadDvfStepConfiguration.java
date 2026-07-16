@@ -27,12 +27,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressStepListener;
+import fr.natsystem.tp_adresse_test.batch.dvf.LineMapper.DvfLineMapper;
 import fr.natsystem.tp_adresse_test.batch.dvf.config.DvfPropertiesConfiguration;
 import fr.natsystem.tp_adresse_test.batch.dvf.listener.DvfSkipListener;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.DvfStage;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.RowAddressDvf;
 import fr.natsystem.tp_adresse_test.batch.dvf.processor.DvfCustomStageProcessor;
-import fr.natsystem.tp_adresse_test.batch.utils.DvfLineMapper;
 import lombok.AllArgsConstructor;
 
 @Configuration
@@ -50,7 +50,6 @@ public class LoadDvfStepConfiguration {
         FlatFileItemReader<RowAddressDvf> dvfCsvReader,
         CompositeItemProcessor<RowAddressDvf,DvfStage> dvfProcessor,
         JdbcBatchItemWriter<DvfStage> dvfJdbcStageWriter,
-        AddressStepListener stepListener,
         DvfSkipListener skipListener,
         @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
@@ -65,7 +64,6 @@ public class LoadDvfStepConfiguration {
         .skip(IllegalArgumentException.class)
         .skipLimit(SKIP_LIMIT)
         .listener(skipListener)
-        .listener(stepListener) //TODO ne sert pas pour l'instant
         .build();
     }
 

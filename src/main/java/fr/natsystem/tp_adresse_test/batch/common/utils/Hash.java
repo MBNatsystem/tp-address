@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.utils;
+package fr.natsystem.tp_adresse_test.batch.common.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

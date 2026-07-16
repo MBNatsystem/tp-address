@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.utils;
+package fr.natsystem.tp_adresse_test.batch.common.utils;
 
 public class Constant {
     public static final String DOWNLOADED = "DOWNLOADED";
@@ -10,6 +10,8 @@ public class Constant {
     public static final String PREPARE_INPPUT_FILE_STEP = "prepareInputFileStep";
     public static final String CHECK_CSV_FORMAT_STEP = "checkCsvFormatStep";
     public static final String LOAD_CSV_TO_STAGE_STEP = "loadCsvToStageStep";
+
+    public static final String DVF_LOAD_STEP = "loadDvfStep";
 
     public static final String CHECKSUM = "CHECKSUM";
 

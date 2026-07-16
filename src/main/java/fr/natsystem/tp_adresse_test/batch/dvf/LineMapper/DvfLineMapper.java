@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.utils;
+package fr.natsystem.tp_adresse_test.batch.dvf.LineMapper;
 
 import java.time.LocalDate;
 

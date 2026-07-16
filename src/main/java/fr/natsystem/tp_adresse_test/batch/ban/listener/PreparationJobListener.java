@@ -15,7 +15,7 @@ import org.springframework.batch.core.step.StepExecution;
 import org.springframework.stereotype.Component;
 
 import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
-import fr.natsystem.tp_adresse_test.batch.utils.Constant;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.AllArgsConstructor;
 
 @Component

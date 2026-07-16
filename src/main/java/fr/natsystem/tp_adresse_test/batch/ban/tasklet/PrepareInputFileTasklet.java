@@ -21,8 +21,8 @@ import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
 import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
-import fr.natsystem.tp_adresse_test.batch.utils.Constant;
-import fr.natsystem.tp_adresse_test.batch.utils.Hash;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Hash;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

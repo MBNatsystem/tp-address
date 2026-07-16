@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.listener;
+package fr.natsystem.tp_adresse_test.batch.common.Listener;
 
 import org.springframework.batch.core.listener.SkipListener;
 import org.springframework.stereotype.Component;

@@ -3,9 +3,9 @@ package fr.natsystem.tp_adresse_test.batch.dvf.processor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
 
+import fr.natsystem.tp_adresse_test.batch.common.utils.Hash;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.DvfStage;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.RowAddressDvf;
-import fr.natsystem.tp_adresse_test.batch.utils.Hash;
 
 public class DvfCustomStageProcessor implements ItemProcessor<RowAddressDvf,DvfStage>{
 
