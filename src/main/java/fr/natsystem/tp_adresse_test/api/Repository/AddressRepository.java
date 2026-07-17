@@ -1,7 +1,6 @@
 package fr.natsystem.tp_adresse_test.api.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,29 +19,32 @@ public interface AddressRepository extends
     Page<Address> findAll(Specification<Address> spec, Pageable pageable);
 
     @Query(value = """
-        SELECT baf.*
-        FROM ban_address_final AS baf
-        WHERE ST_DWithin(
-            baf.position,
-            ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
-            :radiusMeters
-        )
-        ORDER BY baf.position <-> ST_SetSRID(
-            ST_MakePoint(:lon, :lat),
-            4326
-        )::geography
+        SELECT baf.*,
+               (
+                 (lat - :lat) * (lat - :lat) +
+                 (lon - :lon) * (lon - :lon)
+               ) AS distance
+        FROM places_index pi
+        JOIN ban_address_final baf ON pi.id=baf.rowid
+        WHERE pi.min_lat BETWEEN :minLat AND :maxLat
+        AND pi.min_lon BETWEEN :minLon AND :maxLon
+        ORDER BY distance ASC
         LIMIT 1
         """, nativeQuery = true)
-    Optional<Address> findNearestAddress(
-        @Param("lon") double lon,
-        @Param("lat") double lat,
-        @Param("radiusMeters") double radiusMeters
+    Address findNearestAddress(
+        double lat,
+        double minLat,
+        double maxLat,
+        double lon,
+        double minLon,
+        double maxLon
     );
 
     @Query(value = """
         SELECT baf.*
-        FROM ban_address_final baf
-        WHERE baf.search_vector @@ websearch_to_tsquery('simple', :fts)
+        FROM address_fts
+        JOIN ban_address_final baf ON baf.rowid = address_fts.rowid
+        WHERE address_fts MATCH :fts
         AND (:numero IS NULL OR baf.numero = :numero)
         AND (:codePostal IS NULL OR baf.code_postal = :codePostal)
         LIMIT 10
@@ -60,7 +62,7 @@ public interface AddressRepository extends
             AND (:codePostal IS NULL OR baf.code_postal = :codePostal)
             LIMIT 10
             """, nativeQuery = true)
-    List<Address> findNumberAndCodePostal(
+    List<Address> find(
         @Param("numero") Integer numero, 
         @Param("codePostal") String codePostal);
 }
