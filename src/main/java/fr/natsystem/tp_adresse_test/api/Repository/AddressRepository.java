@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import fr.natsystem.tp_adresse_test.api.DTO.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.Entity.Address;
 
 public interface AddressRepository extends 
@@ -63,4 +64,11 @@ public interface AddressRepository extends
     List<Address> findNumberAndCodePostal(
         @Param("numero") Integer numero, 
         @Param("codePostal") String codePostal);
+
+    @Query(value="""
+            SELECT *
+            FROM vue_statistiques_dvf_commune
+            WHERE code_commune = :codeInsee
+            """, nativeQuery = true)
+    TarifCommuneResponse getTarifByCodeInsee(@Param("codeInsee")String codeInsee);
 }

@@ -1,12 +1,18 @@
 package fr.natsystem.tp_adresse_test.batch.dvf.tasklet;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import fr.natsystem.tp_adresse_test.batch.dvf.config.DvfPropertiesConfiguration;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 public class FinalImportDvfTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
+
+    private final DvfPropertiesConfiguration properties;
 
 
     @Override
@@ -82,57 +90,40 @@ public class FinalImportDvfTasklet implements Tasklet {
                 JOIN address_stats i
                 ON s.stage_id = i.stage_id;
                 """);
+
+        Resource sqlResource = properties.getVueDvfStatistique();
         
-        jdbcTemplate.execute("""
-            CREATE OR REPLACE VIEW vue_statistiques_communes AS
-            SELECT
-                code_commune,
-                avg(valeur_fonciere) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '1 year')
-                ) AS prix_moyen_12_mois,
+        if (sqlResource == null) {
+            throw new IllegalStateException(
+                    "La propriété app.vue-dvf-statistique n'est pas configurée"
+            );
+        }
 
-                avg(valeur_fonciere) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '2 years')
-                    AND date_mutation < (CURRENT_DATE - INTERVAL '1 year')
-                ) AS prix_moyen_24_mois,
+        if (!sqlResource.exists()) {
+            throw new IllegalStateException(
+                    "Le fichier SQL n'existe pas : "
+                    + sqlResource.getDescription()
+            );
+        }
 
-                percentile_cont(0.5) WITHIN GROUP (
-                    ORDER BY valeur_fonciere::double precision
-                ) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '1 year')
-                ) AS mediane_12_mois,
+        String sql = readSql(sqlResource);
 
-                percentile_cont(0.5) WITHIN GROUP (
-                    ORDER BY valeur_fonciere::double precision
-                ) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '2 years')
-                    AND date_mutation < (CURRENT_DATE - INTERVAL '1 year')
-                ) AS mediane_24_mois,
+        jdbcTemplate.execute(sql);
 
-                avg(valeur_fonciere / NULLIF(surface_terrain, 1::numeric)) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '1 year')
-                ) AS moyenne_m2_12_mois,
-
-                avg(valeur_fonciere / NULLIF(surface_terrain, 1::numeric)) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '2 years')
-                    AND date_mutation < (CURRENT_DATE - INTERVAL '1 year')
-                ) AS moyenne_m2_24_mois,
-
-                count(*) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '1 year')
-                ) AS nombre_transactions_12_mois,
-
-                count(*) FILTER (
-                    WHERE date_mutation >= (CURRENT_DATE - INTERVAL '2 years')
-                    AND date_mutation < (CURRENT_DATE - INTERVAL '1 year')
-                ) AS nombre_transactions_24_mois
-
-            FROM address_dvf
-            WHERE date_mutation >= (CURRENT_DATE - INTERVAL '2 years')
-            GROUP BY code_commune;
-        """);
         
         return RepeatStatus.FINISHED;
 
+    }
+
+    private String readSql(Resource resource) {
+        try (InputStream inputStream = resource.getInputStream()) {
+            return new String(
+                    inputStream.readAllBytes(),
+                    StandardCharsets.UTF_8
+            );
+        }catch(IOException e){
+            e.printStackTrace();
+            return "";
+        }
     }
 }

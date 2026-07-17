@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import fr.natsystem.tp_adresse_test.api.DTO.AddressDto;
+import fr.natsystem.tp_adresse_test.api.DTO.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.Entity.Address;
 import fr.natsystem.tp_adresse_test.api.Parameters.AddressParameters;
 import fr.natsystem.tp_adresse_test.api.Repository.AddressRepository;
@@ -104,5 +105,10 @@ public class AddressService {
 
         return value.trim().toUpperCase()+"*";
             
+    }
+
+    public TarifCommuneResponse getTarif(String codeInsee) {
+        
+        return addressRepository.getTarifByCodeInsee(codeInsee);
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fr.natsystem.tp_adresse_test.api.DTO.AddressDto;
 import fr.natsystem.tp_adresse_test.api.DTO.BatchParam;
+import fr.natsystem.tp_adresse_test.api.DTO.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.Service.AddressService;
 import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,7 +73,7 @@ public class AddressController {
     }
 
     @GetMapping("/address/one-line")
-    public List<AddressDto> getMethodName(@RequestParam(required = false) String param) {
+    public List<AddressDto> getOneLine(@RequestParam(required = false) String param) {
         return addressService.getByAddressParam(param);
     }
     
@@ -83,6 +85,12 @@ public class AddressController {
     ) {
         return addressService.getAddressByCoordinates(lat, lon);
     }
+
+    @GetMapping("/communes/{code_insee}/tarif")
+    public TarifCommuneResponse getTarif(@PathVariable("code_insee") String codeInsee) {
+        return addressService.getTarif(codeInsee);
+    }
+    
 
     @PostMapping("ban/run")
     public ResponseEntity<?> postRunBatch(
