@@ -23,18 +23,19 @@ public class FinalImportTasklet implements Tasklet {
 
         // Index techniques sur le plan de synchronisation
         
+        log.info("index delete");
         jdbcTemplate.execute("""
             CREATE INDEX IF NOT EXISTS idx_sync_plan_delete_id
             ON address_sync_plan (id)
             WHERE action = 'DELETE';
             """);
-
+        log.info("index insert");
         jdbcTemplate.execute("""
             CREATE INDEX IF NOT EXISTS idx_sync_plan_insert_stage
             ON address_sync_plan (stage_id)
             WHERE action = 'INSERT';
             """);
-        
+        log.info("index update");
         jdbcTemplate.execute("""
             CREATE INDEX IF NOT EXISTS idx_sync_plan_update_stage
             ON address_sync_plan (stage_id)
@@ -52,7 +53,7 @@ public class FinalImportTasklet implements Tasklet {
         jdbcTemplate.execute("""
                 ANALYZE ban_address_final
                 """);
-
+        log.info("execute delete");
         //Suppression des adresses supprimées
         jdbcTemplate.execute("""
                 DELETE FROM ban_address_final f
@@ -60,7 +61,7 @@ public class FinalImportTasklet implements Tasklet {
                 WHERE p.action = 'DELETE'
                 AND f.id = p.id;
                 """);
-        
+        log.info("execute update");
         //Mise à jour des adresses existantes
         jdbcTemplate.execute("""
                 UPDATE ban_address_final
@@ -95,7 +96,7 @@ public class FinalImportTasklet implements Tasklet {
                 WHERE p.action = 'UPDATE'
                 AND ban_address_final.id = s.id;
                 """);
-
+        log.info("execute insert");
         //Insertion des nouvelles adresses
         jdbcTemplate.update("""
             INSERT INTO ban_address_final (

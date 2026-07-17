@@ -70,7 +70,7 @@ public class AddressController {
         return addressService.getAllByAddressParam(numero, nomVoie, rep, nomCommune, codePostal);
     }
 
-    @GetMapping("/address2")
+    @GetMapping("/address/one-line")
     public List<AddressDto> getMethodName(@RequestParam(required = false) String param) {
         return addressService.getByAddressParam(param);
     }
@@ -84,7 +84,7 @@ public class AddressController {
         return addressService.getAddressByCoordinates(lat, lon);
     }
 
-    @PostMapping("run")
+    @PostMapping("ban/run")
     public ResponseEntity<?> postRunBatch(
         @RequestBody BatchParam parameters
     ) throws Exception{
@@ -164,7 +164,5 @@ public class AddressController {
                 }
         return ResponseEntity.accepted().build();
     }
-    
-    
-    
+
 }

@@ -26,7 +26,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressStepListener;
 import fr.natsystem.tp_adresse_test.batch.dvf.LineMapper.DvfLineMapper;
 import fr.natsystem.tp_adresse_test.batch.dvf.config.DvfPropertiesConfiguration;
 import fr.natsystem.tp_adresse_test.batch.dvf.listener.DvfSkipListener;

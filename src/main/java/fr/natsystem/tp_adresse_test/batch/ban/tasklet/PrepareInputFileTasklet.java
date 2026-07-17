@@ -116,6 +116,7 @@ public class PrepareInputFileTasklet implements Tasklet{
 
 
             HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(gzFile));
+            log.info("Status HTTP : {}", response.statusCode());
 
             if(response.statusCode()==200){
                 unzipGzip(gzFile, file);

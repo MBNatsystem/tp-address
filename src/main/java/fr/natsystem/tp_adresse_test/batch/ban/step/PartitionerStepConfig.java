@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -43,28 +44,28 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class PartitionerStepConfig {
 
-    private final int SKIP_LIMIT = 1000;
+    private static final int SKIP_LIMIT = 1000;
     private final AddressBatchProperties properties;
     
     @Bean
     public Step partitionStep(
-        JobRepository jobRepository, 
-        PlatformTransactionManager transactionManager,
-        Step loadCsvToStagePartitionedStep,
-        AsyncTaskExecutor partitionTaskExecutor
+        JobRepository jobRepository,
+        CsvLinePartitioner csvLinePartitioner,
+        @Qualifier("loadCsvToStageWorkerStep") Step workerStep,
+        @Qualifier("partitionTaskExecutor") TaskExecutor taskExecutor
     ) {
         return new StepBuilder("partitionStep", jobRepository)
-        .partitioner(loadCsvToStagePartitionedStep.getName(), partitioner())
-        .gridSize(8)
-        .step(loadCsvToStagePartitionedStep)
-        .taskExecutor(partitionTaskExecutor)
+        .partitioner(workerStep.getName(), csvLinePartitioner)
+        .gridSize(properties.getPartitionCount())
+        .step(workerStep)
+        .taskExecutor(taskExecutor)
         .build();
     }
 
     @Bean
     public AsyncTaskExecutor partitionTaskExecutor(
             ) {
-        int partitionCount = 8;
+        int partitionCount = properties.getPartitionCount();
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
         executor.setCorePoolSize(partitionCount);
@@ -73,8 +74,6 @@ public class PartitionerStepConfig {
         executor.setThreadNamePrefix("address-partition-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60);
-
-        executor.initialize();
 
         return executor;
     }
@@ -102,7 +101,7 @@ public class PartitionerStepConfig {
     }
     
     @Bean
-    public Step loadCsvToStagePartitionedStep (
+    public Step loadCsvToStageWorkerStep (
         JobRepository jobRepository, 
         PlatformTransactionManager txManager,
         @Qualifier("csvReaderP") FlatFileItemReader<RowAddressCsv> reader,
@@ -113,17 +112,17 @@ public class PartitionerStepConfig {
         CountLineListener countLineListener,
         @Value("${batch.address.chunk-size:1000}") int chunkSize
     ){
-        return new StepBuilder("loadCsvToStagePartitionedStep", jobRepository)
+        return new StepBuilder("loadCsvToStageWorkerStep", jobRepository)
         .<RowAddressCsv, AddressStage>chunk(chunkSize)
         .reader(reader)
         .processor(processor)
         .writer(jdbcStageWriter)
-        .listener(stepListener)
         .transactionManager(txManager)
         .faultTolerant()
         .skip(ValidationException.class)
         .skip(IllegalArgumentException.class)
         .skipLimit(SKIP_LIMIT)
+        .listener(stepListener)
         .listener(skipListener)
         .listener(countLineListener)
         .build();

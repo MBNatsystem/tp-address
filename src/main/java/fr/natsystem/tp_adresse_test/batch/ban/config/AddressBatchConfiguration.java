@@ -18,8 +18,6 @@ public class AddressBatchConfiguration  {
     @Bean
     public Job importAddressesJob(JobRepository jobRepository,
         @Qualifier("initializeDbStep") Step initializeDbStep,
-        @Qualifier("prepareInputFileStep") Step prepareInputFileStep,
-        @Qualifier("checkCsvFormatStep") Step checkCsvFormatStep,
         @Qualifier("partitionStep") Step partitionStep,
         @Qualifier("detectDuplicatesAndConflictsStep") Step detectDuplicatesAndConflictsStep,
         @Qualifier("synchroPlanStep") Step synchroPlanStep,

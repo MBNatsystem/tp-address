@@ -19,4 +19,5 @@ public class AddressBatchProperties {
     private String downloadFileName;
     private String extractFileName;
     private Path reportFile;
+    private Integer partitionCount;
 }
