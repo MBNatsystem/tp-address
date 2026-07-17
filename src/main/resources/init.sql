@@ -1,10 +1,13 @@
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA cache_size = -3000000;
+PRAGMA temp_store = MEMORY;
 
---BAN TABLE
+
 DROP TABLE IF EXISTS address_staging;
 DROP TABLE IF EXISTS address_reject;
 DROP TABLE IF EXISTS address_to_insert;
 DROP TABLE IF EXISTS address_sync_plan;
-DROP TABLE IF EXISTS row_address_dvf;
 
 CREATE TABLE IF NOT EXISTS ban_address_final (
     id TEXT PRIMARY KEY,
@@ -31,16 +34,16 @@ CREATE TABLE IF NOT EXISTS ban_address_final (
     certification_commune INTEGER,
     cad_parcelles TEXT,
     line_hash TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE UNLOGGED TABLE IF NOT EXISTS address_staging  (
-    stage_id BIGSERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS address_staging  (
+    stage_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     line_number INTEGER NOT NULL,
     line_hash TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     id TEXT,
     id_fantoir TEXT,
@@ -68,154 +71,42 @@ CREATE UNLOGGED TABLE IF NOT EXISTS address_staging  (
 
 );
 
-CREATE UNLOGGED TABLE IF NOT EXISTS address_reject (
+CREATE TABLE IF NOT EXISTS address_reject (
 
-    reject_id BIGSERIAL PRIMARY KEY,
+    reject_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
     reject_type VARCHAR(64) NOT NULL,
     reject_reason VARCHAR(500) NOT NULL,
 
     line_number INT NULL,
     line_hash TEXT,
-    stage_id BIGINT,
+    stage_id INTEGER,
     id TEXT,
 
     occurrence_count INTEGER,
 
-    created_at  TIMESTAMPTZ DEFAULT NOW()
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE UNLOGGED TABLE IF NOT EXISTS address_to_insert (
+CREATE TABLE IF NOT EXISTS address_to_insert (
     stage_id INTEGER PRIMARY KEY,
     id TEXT NOT NULL,
     line_hash TEXT NOT NULL,
     line_number INTEGER NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 
-CREATE UNLOGGED TABLE IF NOT EXISTS address_sync_plan (
+CREATE TABLE IF NOT EXISTS address_sync_plan (
     id TEXT PRIMARY KEY,
-    stage_id BIGINT,
+    stage_id INTEGER,
     action TEXT NOT NULL,
     old_hash TEXT,
     new_hash TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
---DVF TABLE
-
-CREATE UNLOGGED TABLE IF NOT EXISTS row_address_dvf (
-    stage_id BIGSERIAL PRIMARY KEY,
-    line_hash TEXT,
-    line_number BIGINT NOT NULL,
-
-    id VARCHAR(50) NOT NULL,
-    date_mutation DATE,
-    numero_disposition INTEGER,
-    nature_mutation VARCHAR(100),
-    valeur_fonciere NUMERIC(18, 2),
-
-    adresse_numero VARCHAR(100),
-    adresse_suffixe VARCHAR(100),
-    adresse_code_voie VARCHAR(100),
-    adresse_nom_voie VARCHAR(255),
-
-    code_postal VARCHAR(100),
-    code_commune VARCHAR(100),
-    nom_commune VARCHAR(255),
-    ancien_code_commune VARCHAR(100),
-    ancien_nom_commune VARCHAR(255),
-    code_departement VARCHAR(100),
-
-    id_parcelle VARCHAR(50),
-    ancien_id_parcelle VARCHAR(50),
-    numero_volume VARCHAR(50),
-
-    lot1_numero VARCHAR(50),
-    lot1_surface_carrez NUMERIC(18, 2),
-
-    lot2_numero VARCHAR(50),
-    lot2_surface_carrez NUMERIC(18, 2),
-
-    lot3_numero VARCHAR(50),
-    lot3_surface_carrez NUMERIC(18, 2),
-
-    lot4_numero VARCHAR(50),
-    lot4_surface_carrez NUMERIC(18, 2),
-
-    lot5_numero VARCHAR(50),
-    lot5_surface_carrez NUMERIC(18, 2),
-
-    nombre_lots INTEGER,
-
-    code_type_local VARCHAR(100),
-    type_local VARCHAR(100),
-    surface_reelle_bati NUMERIC(18, 2),
-    nombre_pieces_principales NUMERIC(10, 2),
-
-    code_nature_culture VARCHAR(100),
-    nature_culture VARCHAR(100),
-    code_nature_culture_speciale VARCHAR(100),
-    nature_culture_speciale VARCHAR(100),
-    surface_terrain NUMERIC(18, 2),
-
-    longitude NUMERIC(12, 8) NOT NULL,
-    latitude NUMERIC(11, 8) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS address_dvf (
-    id VARCHAR(50) NOT NULL,
-    date_mutation DATE,
-    numero_disposition INTEGER,
-    nature_mutation VARCHAR(100),
-    valeur_fonciere NUMERIC(18, 2),
-
-    adresse_numero VARCHAR(100),
-    adresse_suffixe VARCHAR(100),
-    adresse_code_voie VARCHAR(100),
-    adresse_nom_voie VARCHAR(255),
-
-    code_postal VARCHAR(100),
-    code_commune VARCHAR(100),
-    nom_commune VARCHAR(255),
-    ancien_code_commune VARCHAR(100),
-    ancien_nom_commune VARCHAR(255),
-    code_departement VARCHAR(100),
-
-    id_parcelle VARCHAR(50),
-    ancien_id_parcelle VARCHAR(50),
-    numero_volume VARCHAR(50),
-
-    lot1_numero VARCHAR(50),
-    lot1_surface_carrez NUMERIC(18, 2),
-
-    lot2_numero VARCHAR(50),
-    lot2_surface_carrez NUMERIC(18, 2),
-
-    lot3_numero VARCHAR(50),
-    lot3_surface_carrez NUMERIC(18, 2),
-
-    lot4_numero VARCHAR(50),
-    lot4_surface_carrez NUMERIC(18, 2),
-
-    lot5_numero VARCHAR(50),
-    lot5_surface_carrez NUMERIC(18, 2),
-
-    nombre_lots INTEGER,
-
-    code_type_local VARCHAR(100),
-    type_local VARCHAR(100),
-    surface_reelle_bati NUMERIC(18, 2),
-    nombre_pieces_principales NUMERIC(10, 2),
-
-    code_nature_culture VARCHAR(100),
-    nature_culture VARCHAR(100),
-    code_nature_culture_speciale VARCHAR(100),
-    nature_culture_speciale VARCHAR(100),
-    surface_terrain NUMERIC(18, 2),
-
-    longitude NUMERIC(12, 8) NOT NULL,
-    latitude NUMERIC(11, 8) NOT NULL,
-    line_hash TEXT
-);
+CREATE INDEX IF NOT EXISTS idx_code_postal ON ban_address_final(code_postal);
+CREATE INDEX IF NOT EXISTS idx_commune ON ban_address_final(nom_commune);
+CREATE INDEX IF NOT EXISTS idx_voie ON ban_address_final(nom_voie);
+CREATE INDEX IF NOT EXISTS idx_insee ON ban_address_final(code_insee);

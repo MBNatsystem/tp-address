@@ -4,20 +4,22 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-        dialect: org.hibernate.community.dialect.SQLiteDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   batch:
     job:
       enabled: false
     jdbc:
       initialize-schema: never
-      platform: sqlite
   application:
     name: tp-adresse-test
   datasource:
-    url: jdbc:sqlite:./data/adresses-france.db?busy_timeout=30000
-    driver-class-name: org.sqlite.JDBC
+    url: jdbc:postgresql://localhost:5432/adresses?reWriteBatchedInserts=true
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 2
+      maximum-pool-size: 8
+      minimum-idle: 4
   sql:
     init:
       mode: always
@@ -25,8 +27,7 @@ spring:
 
 logging:
   pattern:
-    console: "%-5level %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %msg%n"
   file:
     name: data/logs/address-import.log
   level:
@@ -38,12 +39,17 @@ batch:
     input-directory: data/csv/traitement
     archive-directory: data/csv/archive
     download-enabled: false
-    download-url: https://adresse.data.gouv.fr/data/ban/adresses/latest/csv/adresses-79.csv.gz
+    download-url: https://adresse.data.gouv.fr/data/ban/adresses/latest/csv/adresses-france.csv.gz
     download-file-name: adresses-france.csv.gz
-    extract-file-name: adresses-frances.csv
-    report-file: data/rapport/rapport.txt
-    chunk-size: 5000
+    extract-file-name: adresses-france.csv
+    report-directory: data/rapport/
+    chunk-size: 10484
     upsert-sql: classpath:sql/upsert-address.sql
     insert-stage-sql : classpath:sql/insert-address.sql
+    partition-count: 8
+  dvf:
+    insert-sql : classpath:sql/insert-dvf-address.sql
+    vue-sql : classpath:sql/vue-dvf-statistique.sql
+    extract-file-name: data/csv/dvf/full.csv
 server:
   port: 8080
