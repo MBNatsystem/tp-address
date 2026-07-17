@@ -2,9 +2,11 @@ package fr.natsystem.tp_adresse_test.batch.ban.listener;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.springframework.batch.core.BatchStatus;
@@ -56,7 +58,7 @@ public class PreparationJobListener implements JobExecutionListener{
 
         if(Constant.NO_INPUT_FILE.equals(jobExecution.getExitStatus().getExitCode())){
             report.append("Aucun fichier à traiter");
-            write(report);
+            write(report, jobExecution);
             return;
         }
 
@@ -77,12 +79,19 @@ public class PreparationJobListener implements JobExecutionListener{
         report.append("Durée traitement: ").append(duration).append("\n");
         report.append("===========================================\n");
 
-        write(report);
+        write(report,jobExecution);
     }
 
-    private void write(StringBuilder report) {
+    private void write(StringBuilder report, JobExecution jobExecution) {
         try {
-            Files.writeString(properties.getReportFile(), report.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Path reportFile = properties.getReportDirectory()
+            .resolve(
+                "rapport_"+
+                jobExecution.getJobInstance().getJobName()+"_"+
+                jobExecution.getEndTime()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))
+                    .toString());
+            Files.writeString(reportFile, report.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -13,6 +13,7 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.step.StepExecution;
+import org.springframework.boot.batch.autoconfigure.BatchProperties.Job;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -89,12 +90,19 @@ public class AddressJobSummaryListener implements JobExecutionListener {
             report.append("Lignes supprimées : ").append(summaryCounts.deleted()).append("\n");
             report.append("===========================================\n");
         }
-        write(report);
+        write(report, jobExecution);
     }
 
-    private void write(StringBuilder report) {
+    private void write(StringBuilder report, JobExecution jobExecution) {
         try {
-            Files.writeString(properties.getReportFile(), report.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Path reportFile = properties.getReportDirectory()
+            .resolve(
+                "rapport_"+
+                jobExecution.getJobInstance().getJobName()+"_"+
+                jobExecution.getEndTime()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))
+                    .toString());
+            Files.writeString(reportFile, report.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
         }

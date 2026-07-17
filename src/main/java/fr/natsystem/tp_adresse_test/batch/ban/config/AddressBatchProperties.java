@@ -18,6 +18,6 @@ public class AddressBatchProperties {
     private URI downloadUrl;
     private String downloadFileName;
     private String extractFileName;
-    private Path reportFile;
+    private Path reportDirectory;
     private Integer partitionCount;
 }
