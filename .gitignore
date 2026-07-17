@@ -6,7 +6,7 @@ target/
 data/*
 !data/.gitkeep
 src/main/resources/adresses-79.csv/
-
+src/main/resources/application-local.yaml
 ### STS ###
 .apt_generated
 .classpath

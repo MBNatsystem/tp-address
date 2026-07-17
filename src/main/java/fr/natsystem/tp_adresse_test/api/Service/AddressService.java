@@ -1,6 +1,7 @@
 package fr.natsystem.tp_adresse_test.api.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import fr.natsystem.tp_adresse_test.api.DTO.AddressDto;
+import fr.natsystem.tp_adresse_test.api.DTO.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.Entity.Address;
 import fr.natsystem.tp_adresse_test.api.Parameters.AddressParameters;
 import fr.natsystem.tp_adresse_test.api.Repository.AddressRepository;
@@ -28,8 +30,11 @@ public class AddressService {
     private final AddressMapper addressMapper;
 
     public Page<AddressDto> getAllBySearchParam(String codePostal, String nomCommune, String codeInsee, String nomVoie, Pageable pageable) {
-        return addressRepository.findAll(AddressSpecification.globalSearch(codePostal, nomCommune, codeInsee, nomVoie), pageable)
-                .map(addressMapper::toDto);
+        return addressRepository.findAll(
+            AddressSpecification.globalSearch(codePostal, nomCommune, codeInsee, nomVoie), 
+            pageable
+        )
+        .map(addressMapper::toDto);
     }
 
     public AddressDto getAllByAddressParam(Integer numero, String nomVoie, String rep, String nomCommune, String codePostal) {
@@ -46,24 +51,23 @@ public class AddressService {
     public AddressDto getAddressByCoordinates(Double lat, Double lon) {
 
         double RAYON = 1000;
-
-        double delta_lat = RAYON / 111320;
-        double minLat = lat - delta_lat;
-        double maxLat = lat + delta_lat; 
+        Optional<Address> address = addressRepository.findNearestAddress(lon, lat, RAYON);
+        while(!address.isPresent()||RAYON<=10000000){
+            RAYON*=2;
+            address = addressRepository.findNearestAddress(lon, lat, RAYON);
+        }
         
-        double delta_lon = RAYON / (111320 * Math.cos(Math.toRadians(lat)));
-        double minLon = lon - delta_lon;
-        double maxLon = lon + delta_lon;
-
-        Address address = addressRepository.findNearestAddress(lat, minLat, maxLat, lon, minLon, maxLon);
-        return addressMapper.toDto(address);
+        return addressMapper.toDto(address.get());
     }
 
     public List<AddressDto> getByAddressParam(String param) {
+
         AddressParameters params = parseParam(param);
+
         List<Address> addressPage = null;
+        
         if(params.fts()==null || params.fts().trim().isEmpty()){
-             addressPage = addressRepository.find(params.numero(), params.codePostal());
+             addressPage = addressRepository.findNumberAndCodePostal(params.numero(), params.codePostal());
         }
         else{
             addressPage = addressRepository.findFts(params.numero(), params.codePostal(), params.fts());
@@ -101,5 +105,10 @@ public class AddressService {
 
         return value.trim().toUpperCase()+"*";
             
+    }
+
+    public TarifCommuneResponse getTarif(String codeInsee) {
+        
+        return addressRepository.getTarifByCodeInsee(codeInsee);
     }
 }
