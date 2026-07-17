@@ -62,14 +62,12 @@ public class PreparationJobListener implements JobExecutionListener{
             return;
         }
 
-        String checksum = "";
-
         BatchStatus jobStatus = jobExecution.getStatus();
         String exitStatus = jobExecution.getExitStatus().getExitCode();
         LocalDateTime dateDebut = jobExecution.getStartTime();
         LocalDateTime dateFin = jobExecution.getEndTime();
         Duration duration = Duration.between(dateDebut, dateFin);
-        checksum= jobExecution.getExecutionContext().getString(Constant.CHECKSUM, "");
+        String checksum= jobExecution.getExecutionContext().getString(Constant.CHECKSUM, "");
 
         report.append("==========Rapport de traitement===========").append("\n");
         report.append("Checksum: ").append(checksum).append("\n");
