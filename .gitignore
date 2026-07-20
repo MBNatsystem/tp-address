@@ -5,6 +5,10 @@ target/
 !**/src/test/**/target/
 data/*
 !data/.gitkeep
+!data/rapport/.gitkeep
+!data/csv/archive/.gitkeep
+!data/csv/dvf/.gitkeep
+!data/csv/traitement/.gitkeep
 src/main/resources/adresses-79.csv/
 src/main/resources/application-local.yaml
 ### STS ###
