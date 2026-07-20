@@ -14,6 +14,9 @@ data/**
 !data/rapport/
 !data/rapport/.gitkeep
 
+!data/json/geojson/
+!data/json/geojson/.gitkeep
+
 !data/csv/
 !data/csv/archive/
 !data/csv/archive/.gitkeep
