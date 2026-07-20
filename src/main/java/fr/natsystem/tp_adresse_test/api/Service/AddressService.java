@@ -50,10 +50,10 @@ public class AddressService {
 
     public AddressDto getAddressByCoordinates(Double lat, Double lon) {
 
-        double RAYON = 1000;
+        double RAYON = 100;
         Optional<Address> address = addressRepository.findNearestAddress(lon, lat, RAYON);
         while(!address.isPresent()||RAYON<=10000000){
-            RAYON*=2;
+            RAYON*=4;
             address = addressRepository.findNearestAddress(lon, lat, RAYON);
         }
         

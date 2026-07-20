@@ -44,7 +44,12 @@ batch:
     extract-file-name: adresses-france.csv
     report-file: data/rapport/rapport.txt
     chunk-size: 10484
-    upsert-sql: classpath:sql/upsert-address.sql
+    insert-sql: classpath:sql/upsert-address.sql
     insert-stage-sql : classpath:sql/insert-address.sql
+    partition-count : 1
+  dvf:
+    extract-file-name : data/csv/dvf/full.csv
+    vue-dvf-statistique : classpath:sql/vue-dvf-statistique.sql
+    insert-sql: classpath:sql/upsert-dvf-address.sql
 server:
   port: 8080
