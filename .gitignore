@@ -3,12 +3,27 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-data/*
+
+# Ignorer tout ce qui se trouve dans data
+data/**
+
+# Conserver uniquement les dossiers nécessaires et leurs .gitkeep
+!data/
 !data/.gitkeep
+
+!data/rapport/
 !data/rapport/.gitkeep
+
+!data/csv/
+!data/csv/archive/
 !data/csv/archive/.gitkeep
+
+!data/csv/dvf/
 !data/csv/dvf/.gitkeep
+
+!data/csv/traitement/
 !data/csv/traitement/.gitkeep
+
 src/main/resources/adresses-79.csv/
 src/main/resources/application-local.yaml
 ### STS ###
