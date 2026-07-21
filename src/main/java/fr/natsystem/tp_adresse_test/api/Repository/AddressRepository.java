@@ -71,4 +71,45 @@ public interface AddressRepository extends
             WHERE code_commune = :codeInsee
             """, nativeQuery = true)
     TarifCommuneResponse getTarifByCodeInsee(@Param("codeInsee")String codeInsee);
+
+
+    @Query(
+        value = """
+            SELECT jsonb_build_object(
+                'type', 'FeatureCollection',
+                'features', COALESCE(
+                    jsonb_agg(
+                        jsonb_build_object(
+                            'type', 'Feature',
+                            'id', cc.code_insee,
+                            'geometry',
+                                ST_AsGeoJSON(
+                                    ST_Transform(cc.geometry, 4326)
+                                )::jsonb,
+                            'properties', jsonb_build_object(
+                                'code_insee', cc.code_insee,
+                                'nom', cc.nom,
+                                'departement', cc.departement,
+                                'moyenne_m2_12_mois',
+                                    tarifs.moyenne_m2_12_mois,
+                                'nombre_transactions_12_mois',
+                                    tarifs.nombre_transactions_12_mois,
+                                'variation_moyenne_m2',
+                                    tarifs.variation_moyenne_m2
+                            )
+                        )
+                        ORDER BY cc.code_insee
+                    ),
+                    '[]'::jsonb
+                )
+            )::text
+            FROM commune_contour cc
+            LEFT JOIN vue_statistiques_dvf_commune tarifs
+                ON tarifs.code_commune = cc.code_insee
+            WHERE cc.geometry IS NOT NULL
+            AND cc.departement = :departement
+            """,
+        nativeQuery = true
+    )
+    String findAllAsGeoJson(@Param("departement")String departement);
 }

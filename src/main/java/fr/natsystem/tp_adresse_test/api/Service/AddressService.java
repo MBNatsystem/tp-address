@@ -111,4 +111,8 @@ public class AddressService {
         
         return addressRepository.getTarifByCodeInsee(codeInsee);
     }
+
+    public String getCommunesGeoJson(String departement){
+        return addressRepository.findAllAsGeoJson(departement);
+    }
 }

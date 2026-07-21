@@ -28,6 +28,7 @@ import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,7 +78,6 @@ public class AddressController {
     public List<AddressDto> getOneLine(@RequestParam(required = false) String param) {
         return addressService.getByAddressParam(param);
     }
-    
 
     @GetMapping("reverse")
     public AddressDto getAddressByCoordinates(
@@ -91,7 +91,6 @@ public class AddressController {
     public TarifCommuneResponse getTarif(@PathVariable("code_insee") String codeInsee) {
         return addressService.getTarif(codeInsee);
     }
-    
 
     @PostMapping("ban/run")
     public ResponseEntity<?> postRunBatch(
@@ -199,5 +198,21 @@ public class AddressController {
                 }
         return ResponseEntity.accepted().build();
     }
+
+    @GetMapping(
+        value = "geoContour/tarif/{departement}",
+        produces = "application/geo+json"
+    )
+    public  ResponseEntity<String> getCommuneGeoJson(
+        @PathVariable("departement") String departement
+    ) {
+        return  ResponseEntity
+                .ok()
+                .contentType(
+                    MediaType
+                    .parseMediaType("application/geo+json"))
+                .body(addressService.getCommunesGeoJson(departement));
+    }
+    
 
 }
