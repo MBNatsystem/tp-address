@@ -219,3 +219,19 @@ CREATE TABLE IF NOT EXISTS address_dvf (
     latitude NUMERIC(11, 8) NOT NULL,
     line_hash TEXT
 );
+
+CREATE TABLE IF NOT EXISTS commune_contour
+(
+    code_insee VARCHAR(5) PRIMARY KEY,
+    nom        TEXT NOT NULL,
+	departement VARCHAR(5),
+	region VARCHAR(5),
+	epci VARCHAR(20),
+    geometry   geometry(MultiPolygon, 4326) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_commune_contour_geometry
+    ON commune_contour
+    USING GIST (geometry);

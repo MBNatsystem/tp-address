@@ -47,6 +47,7 @@ public class AddressController {
     private final Job importAddressesJob;
     private final Job preparationJob;
     private final Job importDvfJob;
+    private final Job geoContourJob;
     private final AddressBatchProperties batchProperties;
     private ReentrantLock jobLock = new ReentrantLock();
 
@@ -156,7 +157,33 @@ public class AddressController {
         ).toJobParameters();
 
                 try {
+                    //jobOperator.start(importDvfJob, jobParameters);
                     jobOperator.start(importDvfJob, jobParameters);
+                } catch (JobInstanceAlreadyCompleteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (JobExecutionAlreadyRunningException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InvalidJobParametersException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (JobRestartException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("geoContour/run")
+    public ResponseEntity<?> postRunGeoContour() {
+        JobParameters jobParameters = new JobParametersBuilder().addLong(
+            "runId",System.currentTimeMillis(), true
+        ).toJobParameters();
+
+                try {
+                    //jobOperator.start(importDvfJob, jobParameters);
+                    jobOperator.start(geoContourJob, jobParameters);
                 } catch (JobInstanceAlreadyCompleteException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
