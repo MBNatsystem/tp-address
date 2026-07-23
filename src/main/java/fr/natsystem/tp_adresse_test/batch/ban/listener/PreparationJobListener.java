@@ -112,13 +112,13 @@ public class PreparationJobListener implements JobExecutionListener{
 
         StringBuilder report = new StringBuilder();
 
-        if(childExecution==null){
+        if(Constant.NO_INPUT_FILE.equals(preparationJobExecution.getExitStatus().getExitCode())){
+            report.append("Aucun fichier à traiter");
             write(report, preparationJobExecution);
             return;
         }
 
-        if(Constant.NO_INPUT_FILE.equals(preparationJobExecution.getExitStatus().getExitCode())){
-            report.append("Aucun fichier à traiter");
+        if(childExecution==null){
             write(report, preparationJobExecution);
             return;
         }
@@ -131,6 +131,7 @@ public class PreparationJobListener implements JobExecutionListener{
         String checksum= preparationJobExecution.getExecutionContext().getString(Constant.CHECKSUM, "");
 
         report.append("==========Rapport de traitement===========").append("\n");
+        report.append("JobExecutionID: ").append(preparationJobExecution.getId()).append("\n");
         report.append("Checksum: ").append(checksum).append("\n");
         report.append("Statut: ").append(jobStatus).append("\n");
         report.append("ExitStatus: ").append(exitStatus).append("\n");
@@ -180,14 +181,20 @@ public class PreparationJobListener implements JobExecutionListener{
 
     private void write(StringBuilder report, JobExecution preparationJobExecution) {
         try {
-            Path reportFile = properties.getReportDirectory()
-            .resolve(
-                "rapport_"+
+            String reportFileName = "rapport_"+
                 preparationJobExecution.getJobInstance().getJobName()+"_"+
                 preparationJobExecution.getEndTime()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))
-                    .toString());
+                    .toString();
+
+            Path reportFile = properties.getReportDirectory()
+            .resolve(reportFileName);
+
             Files.writeString(reportFile, report.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+            preparationJobExecution.getExecutionContext().putString(Constant.REPORT_FILE_NAME, reportFileName);
+
+            jobRepository.updateExecutionContext(preparationJobExecution);
         } catch (IOException e) {
             e.printStackTrace();
         }

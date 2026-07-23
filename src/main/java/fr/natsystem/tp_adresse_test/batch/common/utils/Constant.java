@@ -10,16 +10,15 @@ public class Constant {
 
     public static final String PREPARE_INPPUT_FILE_STEP = "prepareInputFileStep";
     public static final String CHECK_CSV_FORMAT_STEP = "checkCsvFormatStep";
-    public static final String LOAD_CSV_TO_STAGE_STEP = "loadCsvToStageStep";
+    public static final String LOAD_CSV_TO_STAGE_STEP = "loadCsvToStageWorkerStep";
     public static final String IMPORT_ADDRESSES_JOB_STEP = "importAddressesJobStep";
-
     public static final String DVF_LOAD_STEP = "loadDvfStep";
 
     public static final String CHECKSUM = "CHECKSUM";
 
     public static final String FIRST_LINE = "id;id_fantoir;numero;rep;nom_voie;code_postal;code_insee;nom_commune;code_insee_ancienne_commune;nom_ancienne_commune;x;y;lon;lat;type_position;alias;nom_ld;libelle_acheminement;nom_afnor;source_position;source_nom_voie;certification_commune;cad_parcelles";
 
+    public static final String REPORT_FILE_NAME = "reportFileName";
     public static final String DOWNLOAD_URL = "DOWNLOAD_URL";
 
-    
 }

@@ -5,9 +5,6 @@ public record BatchExecutionStatusResponse(
     String jobName,
     String status,
     String exitCode,
-    Long preparationJobExecutionId,
-    Long importJobExecutionId,
     String checksum,
-    String report,
     String message
 ) {}
