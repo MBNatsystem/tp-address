@@ -9,8 +9,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import fr.natsystem.tp_adresse_test.batch.ban.listener.AddressJobSummaryListener;
-
 @Configuration
 @EnableConfigurationProperties(AddressBatchProperties.class)
 public class AddressBatchConfiguration  {
@@ -21,8 +19,7 @@ public class AddressBatchConfiguration  {
         @Qualifier("partitionStep") Step partitionStep,
         @Qualifier("detectDuplicatesAndConflictsStep") Step detectDuplicatesAndConflictsStep,
         @Qualifier("synchroPlanStep") Step synchroPlanStep,
-        @Qualifier("finalImportStep") Step finalImportStep,
-        AddressJobSummaryListener summaryListener
+        @Qualifier("finalImportStep") Step finalImportStep
     ){
         return new JobBuilder("importAddressesJob", jobRepository)
         .start(initializeDbStep)
@@ -30,7 +27,6 @@ public class AddressBatchConfiguration  {
         .next(detectDuplicatesAndConflictsStep)
         .next(synchroPlanStep)
         .next(finalImportStep)
-        .listener(summaryListener)
         .build();
     }
 }

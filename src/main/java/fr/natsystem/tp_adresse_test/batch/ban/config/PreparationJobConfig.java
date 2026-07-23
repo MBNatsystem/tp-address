@@ -9,31 +9,46 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import fr.natsystem.tp_adresse_test.batch.ban.listener.PreparationJobListener;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 
 @Configuration
 public class PreparationJobConfig {
     
+    private final Step importAddressesJobStep;
+
+    PreparationJobConfig(Step importAddressesJobStep) {
+        this.importAddressesJobStep = importAddressesJobStep;
+    }
+
     @Bean
     public Job preparationJob(JobRepository jobRepository,
         @Qualifier("prepareInputFileStep") Step prepareInputFileStep,
         @Qualifier("checkCsvFormatStep") Step checkCsvFormatStep,
+        @Qualifier("importAddressesJobStep") Step importAddressesJobStep,
         PreparationJobListener summaryListener
     ){
         return new JobBuilder("preparationJob", jobRepository)
         .start(prepareInputFileStep)
-            .on("NO_INPUT_FILE").end("NO_INPUT_FILE")
+            .on(Constant.NO_INPUT_FILE).end(Constant.NO_INPUT_FILE)
 
             .from(prepareInputFileStep)
-                .on("MULTIPLE_FILES_FOUND").fail()
+                .on(Constant.MULTIPLE_FILES_FOUND).fail()
 
             .from(prepareInputFileStep)
                 .on("*").to(checkCsvFormatStep)
             
             .from(checkCsvFormatStep)
-                .on("INVALID_FILE_FORMAT").fail()
+                .on(Constant.INVALID_FILE_FORMAT).fail()
             
             .from(checkCsvFormatStep)
-                .on("*").end()
+                .on("COMPLETED").to(importAddressesJobStep)
+            .from(checkCsvFormatStep)
+                .on("*").fail()
+
+            .from(importAddressesJobStep)
+                .on("COMPLETED").end()
+            .from(importAddressesJobStep)
+                .on("*").fail()
             .end()
             .listener(summaryListener)
             .build();

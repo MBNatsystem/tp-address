@@ -29,11 +29,15 @@ public class CheckCsvFormatTasklet implements Tasklet{
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         Path directory = properties.getInputDirectory();
 
-        Path csv = Files.list(directory).findFirst().orElseThrow();
+        Path csv = Files.list(directory)
+            .filter(Files::isRegularFile)
+            .filter(path -> path.getFileName().toString().endsWith(".csv"))
+            .findFirst()
+            .orElseThrow();
 
         try (BufferedReader reader = Files.newBufferedReader(csv,StandardCharsets.UTF_8)) {
             String firstLine = reader.readLine();
-            if(!firstLine.equals(Constant.FIRST_LINE)){
+            if(!Constant.FIRST_LINE.equals(firstLine)){
                 contribution.setExitStatus(new ExitStatus(Constant.INVALID_FILE_FORMAT));
             }
         }
