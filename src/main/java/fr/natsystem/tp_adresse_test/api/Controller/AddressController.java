@@ -7,6 +7,7 @@ import fr.natsystem.tp_adresse_test.api.DTO.AddressDto;
 import fr.natsystem.tp_adresse_test.api.DTO.BatchParam;
 import fr.natsystem.tp_adresse_test.api.DTO.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.Service.AddressService;
+import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchOperatorConfiguration;
 import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -45,6 +47,8 @@ public class AddressController {
 
     private final AddressService addressService;
     private final JobOperator jobOperator;
+    @Qualifier("addressAsyncJobOperator")
+    private final JobOperator addressAsyncJobOperator;
     private final Job importAddressesJob;
     private final Job preparationJob;
     private final Job importDvfJob;
@@ -117,29 +121,9 @@ public class AddressController {
                 .addString(Constant.DOWNLOAD_URL, downloadUrl.toString(), false)
                 .toJobParameters();
             
-            JobExecution execution;
-
-            
-            execution = jobOperator.start(preparationJob, params);
-            log.info("execution.getStatus():{}",execution.getStatus());
-            if(!execution.getStatus().isUnsuccessful()){
-                log.info("Constant.CHECKSUM:{}",execution.getExecutionContext().get(Constant.CHECKSUM));
-                if (execution.getExecutionContext().get(Constant.CHECKSUM)==null){
-                    return ResponseEntity.accepted().body(Constant.NO_INPUT_FILE);
-                }
-
-                JobParameters importParams = new JobParametersBuilder()
-                .addString(Constant.CHECKSUM, execution.getExecutionContext().getString(Constant.CHECKSUM), true)
-                .toJobParameters();
-                jobOperator.start(importAddressesJob, importParams);
-
-                return ResponseEntity.accepted().body("COMPLETED");
-                
-            }
+            JobExecution execution = addressAsyncJobOperator.start(preparationJob, params);
 
             return ResponseEntity.internalServerError().body(execution.getStatus() + " " + execution.getExitStatus().getExitCode());
-        }catch(JobInstanceAlreadyCompleteException e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Ce fichier a déjà été traité");
         }catch(JobExecutionAlreadyRunningException already){
             log.error(already.getMessage());
             return ResponseEntity.status(HttpStatus.LOCKED).body("Execution deja en cours");

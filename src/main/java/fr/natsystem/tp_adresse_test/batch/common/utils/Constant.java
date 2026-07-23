@@ -10,6 +10,7 @@ public class Constant {
     public static final String PREPARE_INPPUT_FILE_STEP = "prepareInputFileStep";
     public static final String CHECK_CSV_FORMAT_STEP = "checkCsvFormatStep";
     public static final String LOAD_CSV_TO_STAGE_STEP = "loadCsvToStageStep";
+    public static final String IMPORT_ADDRESSES_JOB_STEP = "importAddressesJobStep";
 
     public static final String DVF_LOAD_STEP = "loadDvfStep";
 

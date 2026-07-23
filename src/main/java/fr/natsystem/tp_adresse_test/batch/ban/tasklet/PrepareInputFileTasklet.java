@@ -56,22 +56,23 @@ public class PrepareInputFileTasklet implements Tasklet{
     }
 
     private void checkFile(StepContribution contribution, Path directory) {
-        try {
-            long numberFiles = Files.list(directory)
-                                    .filter(Files::isRegularFile)
-                                    .filter(path -> path.getFileName().toString().endsWith(".csv"))
-                                    .count();
-
-            if(numberFiles>1){
-                contribution.setExitStatus(new ExitStatus(Constant.MULTIPLE_FILES_FOUND));
-                return;
-            }
-            if(numberFiles==0){
+        try (var csvFiles = Files.list(directory)){
+            var files = csvFiles
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(".csv"))
+                    .toList();
+            
+            if(files.isEmpty()){
                 contribution.setExitStatus(new ExitStatus(Constant.NO_INPUT_FILE));
                 return;
             }
 
-            setChecksum(contribution);
+            if(files.size()>1){
+                contribution.setExitStatus(new ExitStatus(Constant.MULTIPLE_FILES_FOUND));
+                return;
+            }
+
+            setChecksum(contribution, files.getFirst());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -79,11 +80,7 @@ public class PrepareInputFileTasklet implements Tasklet{
         }
     }
 
-    private void setChecksum(StepContribution contribution){
-
-        Path file = properties
-                    .getInputDirectory()
-                    .resolve(properties.getExtractFileName());
+    private void setChecksum(StepContribution contribution, Path file){
 
         if(file!=null){
             contribution
