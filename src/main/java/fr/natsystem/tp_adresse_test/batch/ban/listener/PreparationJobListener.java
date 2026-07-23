@@ -15,6 +15,7 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.StepExecution;
@@ -83,6 +84,7 @@ public class PreparationJobListener implements JobExecutionListener{
     private void updateExitStatus(JobExecution preparationJobExecution) {
         Optional<StepExecution> inputFileStep = findStep(preparationJobExecution,Constant.PREPARE_INPPUT_FILE_STEP);
         Optional<StepExecution> checkCsvFormatStep = findStep(preparationJobExecution, Constant.CHECK_CSV_FORMAT_STEP);
+        Optional<StepExecution> importAddressesStep = findStep(preparationJobExecution, Constant.IMPORT_ADDRESSES_JOB_STEP);
         
         if (inputFileStep.isPresent()
                 && Constant.MULTIPLE_FILES_FOUND.equals(inputFileStep.get().getExitStatus().getExitCode())) {
@@ -95,11 +97,25 @@ public class PreparationJobListener implements JobExecutionListener{
 
             preparationJobExecution.setExitStatus(new ExitStatus(Constant.INVALID_FILE_FORMAT));
         }
+
+        if (importAddressesStep.isPresent()){
+            for(Throwable t : importAddressesStep.get().getFailureExceptions()){
+                if (t instanceof JobInstanceAlreadyCompleteException){
+                    preparationJobExecution.setExitStatus(new ExitStatus(Constant.ALREADY_COMPLETE));
+                }
+            }
+        }
+
     }
 
     private void generateReport(JobExecution preparationJobExecution, JobExecution childExecution, SummaryCounts summaryCounts) {
 
         StringBuilder report = new StringBuilder();
+
+        if(childExecution==null){
+            write(report, preparationJobExecution);
+            return;
+        }
 
         if(Constant.NO_INPUT_FILE.equals(preparationJobExecution.getExitStatus().getExitCode())){
             report.append("Aucun fichier à traiter");
@@ -123,13 +139,10 @@ public class PreparationJobListener implements JobExecutionListener{
         report.append("Durée traitement: ").append(duration).append("\n");
         report.append("===========================================\n");
 
-        if(childExecution==null){
-            write(report, preparationJobExecution);
-            return;
-        }
-
         for(StepExecution step: childExecution.getStepExecutions()){
-            stepReport(step, report);
+            if (!step.getStepName().contains(":")) {
+                stepReport(step, report);
+            }
         }
 
         Optional<StepExecution> loadStepOptional = findStep(childExecution, Constant.LOAD_CSV_TO_STAGE_STEP);

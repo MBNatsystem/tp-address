@@ -49,7 +49,6 @@ public class AddressController {
     private final JobOperator jobOperator;
     @Qualifier("addressAsyncJobOperator")
     private final JobOperator addressAsyncJobOperator;
-    private final Job importAddressesJob;
     private final Job preparationJob;
     private final Job importDvfJob;
     private final Job geoContourJob;

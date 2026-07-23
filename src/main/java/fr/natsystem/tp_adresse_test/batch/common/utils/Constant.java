@@ -6,6 +6,7 @@ public class Constant {
     public static final String NO_INPUT_FILE = "NO_INPUT_FILE";
     public static final String MULTIPLE_FILES_FOUND = "MULTIPLE_FILES_FOUND";
     public static final String INVALID_FILE_FORMAT = "INVALID_FILE_FORMAT";
+    public static final String ALREADY_COMPLETE = "ALREADY_COMPLETE";
 
     public static final String PREPARE_INPPUT_FILE_STEP = "prepareInputFileStep";
     public static final String CHECK_CSV_FORMAT_STEP = "checkCsvFormatStep";
