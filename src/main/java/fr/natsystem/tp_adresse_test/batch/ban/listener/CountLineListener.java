@@ -20,7 +20,7 @@ public class CountLineListener implements ItemProcessListener<RowAddressCsv, Add
         long count = counter.incrementAndGet();
 
         if (count % 100_000 == 0) {
-            log.info("Éléments traités : {}", count);
+            log.info("elements traites : {}", count);
         }
     }
 }

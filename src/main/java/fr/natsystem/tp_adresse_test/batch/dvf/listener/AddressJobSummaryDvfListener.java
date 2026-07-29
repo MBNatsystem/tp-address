@@ -32,19 +32,19 @@ public class AddressJobSummaryDvfListener implements JobExecutionListener {
     private void logSummary(JobExecution jobExecution, SummaryCounts summaryCounts) {
         Optional<StepExecution> loadStepOptional = findStep(jobExecution, Constant.DVF_LOAD_STEP);
 
-        log.info("========== RÉCAP IMPORT DVF ==========");
+        log.info("========== ReCAP IMPORT DVF ==========");
         
         if (loadStepOptional.isPresent()) {
             StepExecution loadStep = loadStepOptional.get();
             log.info("Lignes lues : {}", loadStep.getReadCount());
-            log.info("Lignes écrites en staging : {}", loadStep.getWriteCount());
-            log.info("Lignes invalides ignorées : {}", loadStep.getSkipCount());
-            log.info("Lignes filtrées : {}", loadStep.getFilterCount());
+            log.info("Lignes ecrites en staging : {}", loadStep.getWriteCount());
+            log.info("Lignes invalides ignorees : {}", loadStep.getSkipCount());
+            log.info("Lignes filtrees : {}", loadStep.getFilterCount());
         }
 
         log.info("===========================================");
         log.info("Lignes retenues pour insertion : {}", summaryCounts.toInsert());
-        log.info("Doublons rejetés : {}", summaryCounts.duplicates());
+        log.info("Doublons rejetes : {}", summaryCounts.duplicates());
         log.info("===========================================");
         log.info("Statut final: {}", jobExecution.getStatus());
         log.info("Job ExitStatus: {}", jobExecution.getExitStatus().getExitCode());

@@ -12,16 +12,16 @@ public class DvfSkipListener implements SkipListener<RowAddressDvf, RowAddressDv
 
     @Override
     public void onSkipInRead(Throwable t) {
-        log.warn("Ligne ignorée à la lecture {}", t.getMessage());
+        log.warn("Ligne ignoree a la lecture {}", t.getMessage());
     }
 
     @Override
     public void onSkipInProcess(RowAddressDvf item, Throwable t) {
-        log.warn("Élément ignoré pendant le process : {}", item);
+        log.warn("element ignore pendant le process : {}", item);
     }
 
     @Override
     public void onSkipInWrite(RowAddressDvf item, Throwable t) {
-        log.warn("Élément ignoré pendant l'écriture : {}", item);
+        log.warn("element ignore pendant l'ecriture : {}", item);
     }
 }

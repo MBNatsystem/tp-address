@@ -68,7 +68,7 @@ public class DetectDuplicatesAndConflictTasklet implements Tasklet{
                     ELSE 'DOUBLON'
                 END,
                 CASE
-                    WHEN st.has_conflict THEN 'conflit métier'
+                    WHEN st.has_conflict THEN 'conflit metier'
                     ELSE 'doublon'
                 END,
                 s.line_number,
@@ -92,7 +92,7 @@ public class DetectDuplicatesAndConflictTasklet implements Tasklet{
                 """);
 
 
-        // 3. Tous les autres + 1 par doublon => à insérer
+        // 3. Tous les autres + 1 par doublon => a inserer
         jdbcTemplate.execute("""
             CREATE UNLOGGED TABLE address_to_insert AS
             SELECT

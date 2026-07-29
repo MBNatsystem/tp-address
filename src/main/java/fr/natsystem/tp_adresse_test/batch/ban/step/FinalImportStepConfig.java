@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.dvf.step;
+package fr.natsystem.tp_adresse_test.batch.ban.step;
 
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
@@ -10,15 +10,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
-public class finalImportDvfStepConfig {
+public class FinalImportStepConfig {
         
         @Bean
-        public Step finalImportDvfStep(
+        public Step finalImportStep(
                 JobRepository jobRepository,
                 PlatformTransactionManager transactionManager,
-                @Qualifier("finalImportDvfTasklet") Tasklet tasklet
+                @Qualifier("finalImportTasklet") Tasklet tasklet
         ) {
-        return new StepBuilder("finalImportDvfStep", jobRepository)
+        return new StepBuilder("finalImportStep", jobRepository)
                 .tasklet(tasklet, transactionManager)
                 .build();
         }

@@ -14,6 +14,8 @@ import net.openhft.hashing.LongHashFunction;
 
 @Slf4j
 public class Hash {
+
+    private Hash(){}
     private static final LongHashFunction HASHER = LongHashFunction.xx3();
 
     public static String fastHash(String value) {
@@ -22,27 +24,30 @@ public class Hash {
     }
 
     public static String sha256(Path file){
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
+       
+            MessageDigest md = messageDigestSHA256();
 
-            try(InputStream is = Files.newInputStream(file);
-                DigestInputStream dis = new DigestInputStream(is, md)
-                ){
-                    byte[] buffer = new byte[8192];
+        try(InputStream is = Files.newInputStream(file);
+            DigestInputStream dis = new DigestInputStream(is, md)
+            ){
+                byte[] buffer = new byte[8192];
 
-                    while(dis.read(buffer) != -1){
-
-                    }
-                    return HexFormat.of().formatHex(md.digest());
-                } catch (IOException e) {
-                    log.info("ouais");
-                    e.printStackTrace();
+                while(dis.read(buffer) != -1){
+                    //Parcours le fichier jusqu'à la fin
                 }
+                return HexFormat.of().formatHex(md.digest());
+            } catch (IOException e) {
+                log.warn("Error while hashing the file: {}",e);
+            }
 
-        } catch (NoSuchAlgorithmException e) {
-            log.info("non");
-            e.printStackTrace();
-        }
         return "coucou";
+    }
+
+    private static MessageDigest messageDigestSHA256() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
     }
 }

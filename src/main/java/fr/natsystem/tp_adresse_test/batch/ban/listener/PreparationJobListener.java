@@ -5,9 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
@@ -22,6 +25,7 @@ import org.springframework.batch.core.step.StepExecution;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.ban.model.SummaryCounts;
@@ -41,6 +45,10 @@ public class PreparationJobListener implements JobExecutionListener{
     private final Job importAddressesJob;
     
     private final JdbcTemplate jdbcTemplate;
+
+    private static final String ENTETE_RAPPORT_RETOUR_LIGNE = "===========================================\n";
+    private static final String END_TIME_MESSAGE_EXCEPTION = "End time must not be null";
+    private static final String START_TIME_MESSAGE_EXCEPTION = "Start time must not be null";
     
     @Override
     public void afterJob(JobExecution preparationJobExecution) {
@@ -49,6 +57,7 @@ public class PreparationJobListener implements JobExecutionListener{
 
         updateExitStatus(preparationJobExecution);
 
+        //TODO deplacer ceci dans un step a part
         moveCsvFile(preparationJobExecution);
 
         JobExecution childJobExecution = findChildJobExecution(preparationJobExecution);
@@ -62,9 +71,9 @@ public class PreparationJobListener implements JobExecutionListener{
 
         String checksum = parentExecution
                 .getExecutionContext()
-                .getString(Constant.CHECKSUM, null);
+                .getString(Constant.CHECKSUM, "");
 
-        if (checksum == null) {
+        if ("".equals(checksum)) {
             return null;
         }
 
@@ -72,13 +81,11 @@ public class PreparationJobListener implements JobExecutionListener{
                 .addString(Constant.CHECKSUM, checksum, true)
                 .toJobParameters();
 
-        JobExecution childExecution =
-                jobRepository.getLastJobExecution(
+        return jobRepository.getLastJobExecution(
                         importAddressesJob.getName(),
                         childParameters
                 );
 
-        return childExecution;
     }
 
     private void updateExitStatus(JobExecution preparationJobExecution) {
@@ -113,7 +120,7 @@ public class PreparationJobListener implements JobExecutionListener{
         StringBuilder report = new StringBuilder();
 
         if(Constant.NO_INPUT_FILE.equals(preparationJobExecution.getExitStatus().getExitCode())){
-            report.append("Aucun fichier à traiter");
+            report.append("Aucun fichier a traiter");
             write(report, preparationJobExecution);
             return;
         }
@@ -123,11 +130,18 @@ public class PreparationJobListener implements JobExecutionListener{
             return;
         }
 
-        BatchStatus jobStatus = preparationJobExecution.getStatus();
-        String exitStatus = preparationJobExecution.getExitStatus().getExitCode();
         LocalDateTime dateDebut = preparationJobExecution.getStartTime();
         LocalDateTime dateFin = preparationJobExecution.getEndTime();
-        Duration duration = Duration.between(dateDebut, dateFin);
+
+        Assert.notNull(dateDebut, START_TIME_MESSAGE_EXCEPTION);
+        Assert.notNull(dateFin, END_TIME_MESSAGE_EXCEPTION);
+
+        Instant instantDebut = dateDebut.toInstant(ZoneOffset.UTC);
+        Instant instantFin = dateFin.toInstant(ZoneOffset.UTC);
+        Duration duration = Duration.between(instantDebut, instantFin);
+
+        BatchStatus jobStatus = preparationJobExecution.getStatus();
+        String exitStatus = preparationJobExecution.getExitStatus().getExitCode();
         String checksum= preparationJobExecution.getExecutionContext().getString(Constant.CHECKSUM, "");
 
         report.append("==========Rapport de traitement===========").append("\n");
@@ -135,10 +149,10 @@ public class PreparationJobListener implements JobExecutionListener{
         report.append("Checksum: ").append(checksum).append("\n");
         report.append("Statut: ").append(jobStatus).append("\n");
         report.append("ExitStatus: ").append(exitStatus).append("\n");
-        report.append("Début execution: ").append(dateDebut).append("\n");
+        report.append("Debut execution: ").append(dateDebut).append("\n");
         report.append("Fin execution: ").append(dateFin).append("\n");
-        report.append("Durée traitement: ").append(duration).append("\n");
-        report.append("===========================================\n");
+        report.append("Duree traitement: ").append(duration).append("\n");
+        report.append(ENTETE_RAPPORT_RETOUR_LIGNE);
 
         for(StepExecution step: childExecution.getStepExecutions()){
             if (!step.getStepName().contains(":")) {
@@ -146,23 +160,23 @@ public class PreparationJobListener implements JobExecutionListener{
             }
         }
 
-        Optional<StepExecution> loadStepOptional = findStep(childExecution, Constant.LOAD_CSV_TO_STAGE_STEP);
+        Optional<StepExecution> partitionStepOptional = findStep(childExecution, Constant.PARTITION_STEP);
 
-        if(loadStepOptional.isPresent()){
-            StepExecution loadStep = loadStepOptional.get();
-            report.append("Lignes lues : ").append(loadStep.getReadCount()).append("\n");
-            report.append("Lignes écrites en staging : ").append(loadStep.getWriteCount()).append("\n");
-            report.append("Lignes invalides ignorées : ").append(loadStep.getSkipCount()).append("\n");
-            report.append("Lignes filtrées : ").append(loadStep.getFilterCount()).append("\n");
-            report.append("===========================================\n");
+        if(partitionStepOptional.isPresent()){
+            StepExecution partitionStep = partitionStepOptional.get();
+            report.append("Lignes lues : ").append(partitionStep.getReadCount()).append("\n");
+            report.append("Lignes ecrites en staging : ").append(partitionStep.getWriteCount()).append("\n");
+            report.append("Lignes invalides ignorees : ").append(partitionStep.getSkipCount()).append("\n");
+            report.append("Lignes filtrees : ").append(partitionStep.getFilterCount()).append("\n");
+            report.append(ENTETE_RAPPORT_RETOUR_LIGNE);
             report.append("Lignes retenues pour insertion : ").append(summaryCounts.toInsert()).append("\n");
-            report.append("Doublons rejetés : ").append(summaryCounts.duplicates()).append("\n");
-            report.append("Conflits métier : ").append(summaryCounts.conflicts()).append("\n");
-            report.append("===========================================\n");
-            report.append("Lignes insérées : ").append(summaryCounts.inserted()).append("\n");
-            report.append("Lignes modifiées : ").append(summaryCounts.updated()).append("\n");
-            report.append("Lignes supprimées : ").append(summaryCounts.deleted()).append("\n");
-            report.append("===========================================\n");
+            report.append("Doublons rejetes : ").append(summaryCounts.duplicates()).append("\n");
+            report.append("Conflits metier : ").append(summaryCounts.conflicts()).append("\n");
+            report.append(ENTETE_RAPPORT_RETOUR_LIGNE);
+            report.append("Lignes inserees : ").append(summaryCounts.inserted()).append("\n");
+            report.append("Lignes modifiees : ").append(summaryCounts.updated()).append("\n");
+            report.append("Lignes supprimees : ").append(summaryCounts.deleted()).append("\n");
+            report.append(ENTETE_RAPPORT_RETOUR_LIGNE);
         }
 
         write(report,preparationJobExecution);
@@ -171,21 +185,31 @@ public class PreparationJobListener implements JobExecutionListener{
     private void stepReport(StepExecution step, StringBuilder report) {
         LocalDateTime dateDebut = step.getStartTime();
         LocalDateTime dateFin = step.getEndTime();
-        Duration duration = Duration.between(dateDebut, dateFin);
+
+        Assert.notNull(dateDebut, START_TIME_MESSAGE_EXCEPTION);
+        Assert.notNull(dateFin, END_TIME_MESSAGE_EXCEPTION);
+
+        Instant instantDebut = dateDebut.toInstant(ZoneOffset.UTC);
+        Instant instantFin = dateFin.toInstant(ZoneOffset.UTC);
+        Duration duration = Duration.between(instantDebut, instantFin);
+        
         report.append("Step: ").append(step.getStepName()).append("\n");
-        report.append("Début execution: ").append(dateDebut).append("\n");
+        report.append("Debut execution: ").append(dateDebut).append("\n");
         report.append("Fin execution: ").append(dateFin).append("\n");
-        report.append("Durée traitement: ").append(duration).append("\n");
-        report.append("===========================================\n");
+        report.append("Duree traitement: ").append(duration).append("\n");
+        report.append(ENTETE_RAPPORT_RETOUR_LIGNE);
     }
 
     private void write(StringBuilder report, JobExecution preparationJobExecution) {
+
+        LocalDateTime dateFin = preparationJobExecution.getEndTime();
+        Assert.notNull(dateFin, END_TIME_MESSAGE_EXCEPTION);
+
         try {
             String reportFileName = "rapport_"+
                 preparationJobExecution.getJobInstance().getJobName()+"_"+
-                preparationJobExecution.getEndTime()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))
-                    .toString();
+                dateFin
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
 
             Path reportFile = properties.getReportDirectory()
             .resolve(reportFileName);
@@ -196,7 +220,8 @@ public class PreparationJobListener implements JobExecutionListener{
 
             jobRepository.updateExecutionContext(preparationJobExecution);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Echec de la generation du rapport", e);
+            log.info("Contenu du rapport genere: %s", report);
         }
     }
 
@@ -207,6 +232,7 @@ public class PreparationJobListener implements JobExecutionListener{
                 .findFirst();
     }
 
+    //TODO déplacer ce travail dans un step
     private void moveCsvFile(JobExecution jobExecution) {
 
         if(Constant.NO_INPUT_FILE.equals(jobExecution.getExitStatus().getExitCode()) || Constant.MULTIPLE_FILES_FOUND.equals(jobExecution.getExitStatus().getExitCode())){
@@ -216,15 +242,18 @@ public class PreparationJobListener implements JobExecutionListener{
         Path directory = properties.getInputDirectory();
         Path csv;
 
-        try {
+        try (Stream<Path> files = Files.list(directory)) {
 
-            csv = Files.list(directory)
+            csv = files
                 .filter(Files::isRegularFile)
                 .filter(path -> path.getFileName().toString().endsWith(".csv"))
                 .findFirst()
                 .orElseThrow();
-            
-            Path archiveDirectory = properties.getArchiveDirectory().resolve(jobExecution.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")).toString()+"_archive_"+csv.getFileName());
+
+            LocalDateTime dateFin = jobExecution.getEndTime();
+            Assert.notNull(dateFin, END_TIME_MESSAGE_EXCEPTION);
+
+            Path archiveDirectory = properties.getArchiveDirectory().resolve(dateFin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))+"_archive_"+csv.getFileName());
 
             Files.move(csv, archiveDirectory);
         } catch (IOException e) {

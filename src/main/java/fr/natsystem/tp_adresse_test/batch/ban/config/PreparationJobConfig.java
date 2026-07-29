@@ -13,12 +13,6 @@ import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 
 @Configuration
 public class PreparationJobConfig {
-    
-    private final Step importAddressesJobStep;
-
-    PreparationJobConfig(Step importAddressesJobStep) {
-        this.importAddressesJobStep = importAddressesJobStep;
-    }
 
     @Bean
     public Job preparationJob(JobRepository jobRepository,

@@ -7,7 +7,7 @@ target/
 # Ignorer tout ce qui se trouve dans data
 data/**
 
-# Conserver uniquement les dossiers nécessaires et leurs .gitkeep
+# Conserver uniquement les dossiers necessaires et leurs .gitkeep
 !data/
 !data/.gitkeep
 

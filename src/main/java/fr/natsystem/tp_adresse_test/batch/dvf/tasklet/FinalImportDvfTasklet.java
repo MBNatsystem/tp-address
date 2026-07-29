@@ -95,7 +95,7 @@ public class FinalImportDvfTasklet implements Tasklet {
         
         if (sqlResource == null) {
             throw new IllegalStateException(
-                    "La propriété app.vue-dvf-statistique n'est pas configurée"
+                    "La propriete app.vue-dvf-statistique n'est pas configuree"
             );
         }
 
@@ -121,9 +121,8 @@ public class FinalImportDvfTasklet implements Tasklet {
                     inputStream.readAllBytes(),
                     StandardCharsets.UTF_8
             );
-        }catch(IOException e){
-            e.printStackTrace();
-            return "";
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read SQL resource: ", e);
         }
     }
 }

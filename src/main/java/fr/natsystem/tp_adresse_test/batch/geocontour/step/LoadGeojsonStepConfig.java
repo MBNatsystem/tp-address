@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.geoContour.step;
+package fr.natsystem.tp_adresse_test.batch.geocontour.step;
 
 import java.nio.file.Path;
 
@@ -8,7 +8,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.infrastructure.item.database.builder.JdbcBatchItemWriterBuilder;
@@ -20,28 +19,28 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.natsystem.tp_adresse_test.batch.geoContour.model.CommuneContour;
-import fr.natsystem.tp_adresse_test.batch.geoContour.reader.JsonReader;
+import fr.natsystem.tp_adresse_test.batch.geocontour.model.CommuneContour;
+import fr.natsystem.tp_adresse_test.batch.geocontour.reader.JsonReader;
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Configuration
-public class loadGeojsonStepConfig {
+public class LoadGeojsonStepConfig {
     
     @Bean
     public Step loadGeojsonStep(
         JobRepository jobRepository,
         PlatformTransactionManager transactionManager,
-        JsonItemReader<CommuneContour> CommuneContourReader,
+        JsonItemReader<CommuneContour> communeContourReader,
         //ItemProcessor<CommuneContour, CommuneContour> processor,
         ItemWriter<CommuneContour> writer
     ){
         return new StepBuilder("loadGeojsonStep",jobRepository)
         .<CommuneContour, CommuneContour>chunk(1000)
         .transactionManager(transactionManager)
-        .reader(CommuneContourReader)
+        .reader(communeContourReader)
         //.processor(processor)
         .writer(writer)
         .build();
@@ -49,7 +48,7 @@ public class loadGeojsonStepConfig {
 
     @Bean
     @StepScope
-    public JsonItemReader<CommuneContour> CommuneContourReader(
+    public JsonItemReader<CommuneContour> communeContourReader(
         @Value("${batch.geo-contour.extract-file-name}") Path inputFile
     ){
         JsonMapper mapper = JsonMapper.builder().build();
@@ -60,12 +59,10 @@ public class loadGeojsonStepConfig {
 
         var objectReader = new JsonReader<CommuneContour>(mapper, communeObjectReader);
 
-        var reader = new JsonItemReader<>(
+        return new JsonItemReader<>(
             new FileSystemResource(inputFile),
             objectReader
         );
-
-        return reader;
     }
 
     @Bean

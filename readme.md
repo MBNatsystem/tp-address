@@ -1,8 +1,8 @@
 # TP Adresse - Import BAN
 
-## Présentation
+## Presentation
 
-Application Spring Batch permettant d'importer les données de la Base Adresse Nationale (BAN) dans une base SQLite.
+Application Spring Batch permettant d'importer les donnees de la Base Adresse Nationale (BAN) dans une base SQLite.
 
 Technologies :
 
@@ -12,7 +12,7 @@ Technologies :
 
 ---
 
-## Prérequis
+## Prerequis
 
 * Java 25
 * Maven
@@ -21,7 +21,7 @@ Technologies :
 
 ## Configuration
 
-Les principaux paramètres sont définis dans `application.yaml` :
+Les principaux parametres sont definis dans `application.yaml` :
 
 ```yaml
 batch:
@@ -30,10 +30,10 @@ batch:
     chunk-size: 500
 ```
 
-* `input-file` : fichier CSV BAN à importer
-* `chunk-size` : taille des lots traités par Spring Batch
+* `input-file` : fichier CSV BAN a importer
+* `chunk-size` : taille des lots traites par Spring Batch
 
-Le fichier CSV doit être placé dans :
+Le fichier CSV doit être place dans :
 
 ```text
 data/csv
@@ -55,7 +55,7 @@ mvn clean package
 
 ---
 
-## Exécution
+## Execution
 
 ### Import complet
 
@@ -95,72 +95,72 @@ mvn spring-boot:run "-Dspring-boot.run.arguments=codePostal=79240 codeInsee=7900
 
 ---
 
-## Base de données
+## Base de donnees
 
-La base SQLite est créée automatiquement dans :
+La base SQLite est creee automatiquement dans :
 
 ```text
 data/adresses.db
 ```
 
 La table: ban_address_final
-Correspond au résultat de l'import (cependant les conflits métiers ne seront pas importé)
+Correspond au resultat de l'import (cependant les conflits metiers ne seront pas importe)
 
 La table: address_reject
-Contient toutes les erreurs de dupplication ou de conflit métier. Les duplications ont été inséré mais pas les conflits métiers
+Contient toutes les erreurs de dupplication ou de conflit metier. Les duplications ont ete insere mais pas les conflits metiers
 
 La table: address_sync_plan
-Contient les informations de votre dernier import (lignes ajoutées/modifiées/supprimées)
+Contient les informations de votre dernier import (lignes ajoutees/modifiees/supprimees)
 
 ---
 
-## Configuration avancée
+## Configuration avancee
 
-L'application utilise SQLite. Certains paramètres peuvent être ajustés pour privilégier soit la performance, soit la sécurité des données.
+L'application utilise SQLite. Certains parametres peuvent être ajustes pour privilegier soit la performance, soit la securite des donnees.
 
-Ces paramètres sont particulièrement importants lors de l'import de fichiers volumineux. Ils sont à modifier
+Ces parametres sont particulierement importants lors de l'import de fichiers volumineux. Ils sont a modifier
 
 #### `PRAGMA journal_mode`
 
-Définit le mode de journalisation utilisé par SQLite.
+Definit le mode de journalisation utilise par SQLite.
 
-| Valeur   | Performance |    Sécurité | Usage conseillé                        |
+| Valeur   | Performance |    Securite | Usage conseille                        |
 | -------- | ----------: | ----------: | -------------------------------------- |
-| `DELETE` |     Moyenne |      Élevée | Mode classique SQLite                  |
-| `WAL`    |      Élevée |      Élevée | Recommandé pour les imports volumineux |
-| `OFF`    | Très élevée | Très faible | Déconseillé                            |
+| `DELETE` |     Moyenne |      elevee | Mode classique SQLite                  |
+| `WAL`    |      elevee |      elevee | Recommande pour les imports volumineux |
+| `OFF`    | Tres elevee | Tres faible | Deconseille                            |
 
-Valeur recommandée :
+Valeur recommandee :
 
 ```sql
 PRAGMA journal_mode = WAL;
 ```
 
-Le mode `WAL` écrit les changements dans un fichier séparé avant de les intégrer à la base principale. Il est généralement plus performant pour les écritures importantes.
+Le mode `WAL` ecrit les changements dans un fichier separe avant de les integrer a la base principale. Il est generalement plus performant pour les ecritures importantes.
 
 #### `PRAGMA synchronous`
 
-Définit le niveau de synchronisation des écritures sur le disque.
+Definit le niveau de synchronisation des ecritures sur le disque.
 
-| Valeur   | Performance | Sécurité | Usage conseillé           |
+| Valeur   | Performance | Securite | Usage conseille           |
 | -------- | ----------: | -------: | ------------------------- |
 | `FULL`   |  Plus lente | Maximale | Environnement sensible    |
-| `NORMAL` |       Bonne |    Bonne | Recommandé pour ce projet |
-| `OFF`    | Très rapide |   Faible | Déconseillé               |
+| `NORMAL` |       Bonne |    Bonne | Recommande pour ce projet |
+| `OFF`    | Tres rapide |   Faible | Deconseille               |
 
-Valeur recommandée pour un bon compromis :
+Valeur recommandee pour un bon compromis :
 
 ```sql
 PRAGMA synchronous = NORMAL;
 ```
 
-Avec `NORMAL`, SQLite effectue moins de synchronisations disque qu'avec `FULL`. Cela améliore les performances, avec un risque limité en cas d'arrêt brutal de la machine pendant l'import.
+Avec `NORMAL`, SQLite effectue moins de synchronisations disque qu'avec `FULL`. Cela ameliore les performances, avec un risque limite en cas d'arrêt brutal de la machine pendant l'import.
 
 #### `PRAGMA cache_size`
 
-Définit la quantité de mémoire utilisée par SQLite pour mettre en cache les pages de la base.
+Definit la quantite de memoire utilisee par SQLite pour mettre en cache les pages de la base.
 
-Une valeur négative indique une taille en kibioctets.
+Une valeur negative indique une taille en kibioctets.
 
 Exemples :
 
@@ -170,40 +170,40 @@ PRAGMA cache_size = -262144;  -- environ 256 Mo
 PRAGMA cache_size = -524288;  -- environ 512 Mo
 ```
 
-| Valeur    | Performance | Mémoire utilisée |
+| Valeur    | Performance | Memoire utilisee |
 | --------- | ----------: | ---------------: |
 | `-65536`  |    Correcte |           Faible |
 | `-262144` |       Bonne |          Moyenne |
-| `-524288` |  Très bonne |           Élevée |
+| `-524288` |  Tres bonne |           elevee |
 
-Valeur recommandée :
+Valeur recommandee :
 
 ```sql
 PRAGMA cache_size = -262144;
 ```
 
-Augmenter cette valeur peut améliorer les performances sur les gros imports, mais augmente la consommation mémoire.
+Augmenter cette valeur peut ameliorer les performances sur les gros imports, mais augmente la consommation memoire.
 
 #### `PRAGMA temp_store`
 
-Définit où SQLite stocke les structures temporaires utilisées pendant certains tris, jointures ou regroupements.
+Definit où SQLite stocke les structures temporaires utilisees pendant certains tris, jointures ou regroupements.
 
-| Valeur   | Performance | Mémoire utilisée | Usage conseillé                        |
+| Valeur   | Performance | Memoire utilisee | Usage conseille                        |
 | -------- | ----------: | ---------------: | -------------------------------------- |
 | `FILE`   |  Plus lente |           Faible | Machines avec peu de RAM               |
-| `MEMORY` | Plus rapide |      Plus élevée | Recommandé pour les imports volumineux |
+| `MEMORY` | Plus rapide |      Plus elevee | Recommande pour les imports volumineux |
 
-Valeur recommandée :
+Valeur recommandee :
 
 ```sql
 PRAGMA temp_store = MEMORY;
 ```
 
-Cette option permet de limiter les accès disque pendant les traitements SQL complexes.
+Cette option permet de limiter les acces disque pendant les traitements SQL complexes.
 
 #### Configuration rapide
 
-Configuration recommandée pour privilégier les performances pendant l'import :
+Configuration recommandee pour privilegier les performances pendant l'import :
 
 ```sql
 PRAGMA journal_mode = WAL;
@@ -212,11 +212,11 @@ PRAGMA cache_size = -262144;
 PRAGMA temp_store = MEMORY;
 ```
 
-Cette configuration est adaptée à un import volumineux sur une machine stable, idéalement avec un SSD.
+Cette configuration est adaptee a un import volumineux sur une machine stable, idealement avec un SSD.
 
-#### Configuration sécurisée
+#### Configuration securisee
 
-Configuration recommandée si la sécurité des écritures est prioritaire :
+Configuration recommandee si la securite des ecritures est prioritaire :
 
 ```sql
 PRAGMA journal_mode = WAL;
@@ -229,9 +229,9 @@ Cette configuration est plus prudente, mais moins rapide.
 
 ---
 
-### Exécution avancée
+### Execution avancee
 
-Pour les imports volumineux, il est possible d'augmenter la mémoire allouée à la JVM.
+Pour les imports volumineux, il est possible d'augmenter la memoire allouee a la JVM.
 
 Exemple :
 
@@ -243,14 +243,14 @@ mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-Xms2g -Xmx4g"
 java "-Dspring-boot.run.jvmArguments=-Xms2g -Xmx4g" -jar .\target\tp-adresse-test-0.0.1-SNAPSHOT.jar
 ```
 
-Paramètres :
+Parametres :
 
-| Paramètre | Description                                   |
+| Parametre | Description                                   |
 | --------- | --------------------------------------------- |
-| `-Xms2g`  | Mémoire initiale allouée à la JVM : 2 Go      |
-| `-Xmx4g`  | Mémoire maximale autorisée pour la JVM : 4 Go |
+| `-Xms2g`  | Memoire initiale allouee a la JVM : 2 Go      |
+| `-Xmx4g`  | Memoire maximale autorisee pour la JVM : 4 Go |
 
-Exemple avec plus de mémoire :
+Exemple avec plus de memoire :
 
 ```bash
 mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-Xms4g -Xmx8g"
@@ -258,13 +258,13 @@ mvn spring-boot:run "-Dspring-boot.run.jvmArguments=-Xms4g -Xmx8g"
 
 Recommandations :
 
-| Taille du fichier | Mémoire JVM recommandée |
+| Taille du fichier | Memoire JVM recommandee |
 | ----------------- | ----------------------- |
 | Petit fichier     | `-Xms512m -Xmx1g`       |
 | Fichier moyen     | `-Xms1g -Xmx2g`         |
 | Gros fichier      | `-Xms2g -Xmx4g`         |
-| Très gros fichier | `-Xms4g -Xmx8g`         |
+| Tres gros fichier | `-Xms4g -Xmx8g`         |
 
-Augmenter la mémoire JVM peut améliorer la stabilité du traitement sur les gros volumes, mais ne remplace pas les optimisations SQLite.
+Augmenter la memoire JVM peut ameliorer la stabilite du traitement sur les gros volumes, mais ne remplace pas les optimisations SQLite.
 
-Pour de meilleures performances, il est recommandé d'exécuter l'import sur un SSD.
+Pour de meilleures performances, il est recommande d'executer l'import sur un SSD.

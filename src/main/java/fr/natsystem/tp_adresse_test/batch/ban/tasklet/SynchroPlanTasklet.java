@@ -47,7 +47,7 @@ public class SynchroPlanTasklet implements Tasklet{
                 OR baf.id IS NULL
                 OR baf.line_hash IS DISTINCT FROM i.line_hash;
                 """);
-            
+
         jdbcTemplate.update("""
                 ALTER TABLE address_sync_plan
                 ADD PRIMARY KEY (id);

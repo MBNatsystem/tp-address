@@ -14,6 +14,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -36,14 +37,16 @@ public class PrepareInputFileTasklet implements Tasklet{
 
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext){
-        Boolean download = Boolean.parseBoolean(contribution.getStepExecution().getJobParameters().getString(Constant.DOWNLOADED));
+        JobParameter<?> downloadParam = contribution.getStepExecution().getJobExecution().getJobParameters().getParameter(Constant.DOWNLOADED);
 
+        boolean download = downloadParam !=null ? (Boolean) downloadParam.value() : Boolean.FALSE;
+        
         Path directory = properties.getInputDirectory();
 
         try {
             Files.createDirectories(directory);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Error while creating directory: {}", e);
         }
 
         if (download){
@@ -75,8 +78,7 @@ public class PrepareInputFileTasklet implements Tasklet{
             setChecksum(contribution, files.getFirst());
 
         } catch (IOException e) {
-            e.printStackTrace();
-            log.error("Erreur pendant la vérification du fichier");
+            log.warn("Erreur pendant la verification du fichier: {}", e);
         }
     }
 
@@ -119,10 +121,12 @@ public class PrepareInputFileTasklet implements Tasklet{
                 unzipGzip(gzFile, file);
             }
 
-        } catch (IOException | InterruptedException | URISyntaxException e) {
-            e.printStackTrace();
-            log.error("Erreur pendant le téléchargement du fichier");
-        } 
+        } catch (IOException |  URISyntaxException e) {
+            log.error("Erreur pendant le telechargement du fichier : {}", e);
+        } catch(InterruptedException ie){
+            Thread.currentThread().interrupt();
+            log.error("Erreur pendant le telechargement du fichier : {}", ie);
+        }
     }
 
     private void unzipGzip(Path sourceGz, Path targetCsv) throws IOException {

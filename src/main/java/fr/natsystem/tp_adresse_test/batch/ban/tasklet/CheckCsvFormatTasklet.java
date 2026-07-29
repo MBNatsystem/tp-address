@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.ExitStatus;
@@ -29,16 +30,19 @@ public class CheckCsvFormatTasklet implements Tasklet{
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         Path directory = properties.getInputDirectory();
 
-        Path csv = Files.list(directory)
+        try(Stream<Path> files = Files.list(directory)){
+            Path csv = files
             .filter(Files::isRegularFile)
             .filter(path -> path.getFileName().toString().endsWith(".csv"))
             .findFirst()
             .orElseThrow();
+       
 
-        try (BufferedReader reader = Files.newBufferedReader(csv,StandardCharsets.UTF_8)) {
-            String firstLine = reader.readLine();
-            if(!Constant.FIRST_LINE.equals(firstLine)){
-                contribution.setExitStatus(new ExitStatus(Constant.INVALID_FILE_FORMAT));
+            try (BufferedReader reader = Files.newBufferedReader(csv,StandardCharsets.UTF_8)) {
+                String firstLine = reader.readLine();
+                if(!Constant.FIRST_LINE.equals(firstLine)){
+                    contribution.setExitStatus(new ExitStatus(Constant.INVALID_FILE_FORMAT));
+                }
             }
         }
         return RepeatStatus.FINISHED;

@@ -2,7 +2,6 @@ package fr.natsystem.tp_adresse_test.batch.dvf.step;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
 
 import javax.sql.DataSource;
 
@@ -26,8 +25,8 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fr.natsystem.tp_adresse_test.batch.dvf.LineMapper.DvfLineMapper;
 import fr.natsystem.tp_adresse_test.batch.dvf.config.DvfPropertiesConfiguration;
+import fr.natsystem.tp_adresse_test.batch.dvf.linemapper.DvfLineMapper;
 import fr.natsystem.tp_adresse_test.batch.dvf.listener.DvfSkipListener;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.DvfStage;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.RowAddressDvf;
@@ -110,7 +109,7 @@ public class LoadDvfStepConfiguration {
         .build();
     }
 
-    // Bean pour écrire les objets RowAddressDvf dans la base de données
+    // Bean pour ecrire les objets RowAddressDvf dans la base de donnees
     @Bean
     public JdbcBatchItemWriter<DvfStage> dvfJdbcStageWriter(
             DataSource dataSource,
@@ -129,7 +128,7 @@ public class LoadDvfStepConfiguration {
                 ps.setLong(index++, item.getLineNumber());
 
                 ps.setString(index++, item.getIdMutation());
-                ps.setDate(index++, Date.valueOf(item.getDateMutation()));
+                ps.setObject(index++, item.getDateMutation());
                 ps.setObject(index++, item.getNumeroDisposition());
                 ps.setString(index++, item.getNatureMutation());
                 ps.setBigDecimal(index++, item.getValeurFonciere());
