@@ -9,7 +9,7 @@ import fr.natsystem.tp_adresse_test.api.dto.BatchLaunchResponse;
 import fr.natsystem.tp_adresse_test.api.dto.BatchParam;
 import fr.natsystem.tp_adresse_test.api.dto.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.service.AddressService;
-import fr.natsystem.tp_adresse_test.batch.ban.config.AddressBatchProperties;
+import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

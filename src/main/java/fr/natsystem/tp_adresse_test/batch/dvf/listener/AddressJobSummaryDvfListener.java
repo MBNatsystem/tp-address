@@ -8,7 +8,7 @@ import org.springframework.batch.core.step.StepExecution;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import fr.natsystem.tp_adresse_test.batch.ban.model.SummaryCounts;
+import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.SummaryCounts;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

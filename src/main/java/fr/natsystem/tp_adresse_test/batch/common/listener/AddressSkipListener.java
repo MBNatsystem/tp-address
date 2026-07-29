@@ -3,7 +3,7 @@ package fr.natsystem.tp_adresse_test.batch.common.listener;
 import org.springframework.batch.core.listener.SkipListener;
 import org.springframework.stereotype.Component;
 
-import fr.natsystem.tp_adresse_test.batch.ban.model.RowAddressCsv;
+import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv.models.RowAddressCsv;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
