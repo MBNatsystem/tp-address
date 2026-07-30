@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.finalimport;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.finalimport;
 
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;

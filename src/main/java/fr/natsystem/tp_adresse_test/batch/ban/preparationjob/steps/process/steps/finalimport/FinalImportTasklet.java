@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.finalimport;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.finalimport;
 
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;

@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.detectconflict;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.detectconflict;
 
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;

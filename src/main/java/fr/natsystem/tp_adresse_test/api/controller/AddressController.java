@@ -31,6 +31,7 @@ import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -233,15 +234,14 @@ public class AddressController {
             return ResponseEntity.notFound().build();
         }
         
-        String reportFileName = execution
-                .getExecutionContext()
-                .getString(Constant.REPORT_FILE_NAME, null);
+        ExecutionContext executionContext = execution
+                .getExecutionContext();
 
-        if (reportFileName == null) {
+        if (!executionContext.containsKey(Constant.REPORT_FILE_NAME)) {
             return ResponseEntity.notFound().build();
         }
 
-        Path reportFile = batchProperties.getReportDirectory().resolve(reportFileName);
+        Path reportFile = batchProperties.getReportDirectory().resolve(executionContext.getString(Constant.REPORT_FILE_NAME));
 
         Resource resource =
                 new UrlResource(reportFile.toUri());

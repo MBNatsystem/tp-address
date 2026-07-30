@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -18,6 +18,8 @@ import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWrite
 import org.springframework.batch.infrastructure.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.file.mapping.RecordFieldSetMapper;
+import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.ValidationException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,9 +33,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.AddressBatchProperties;
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.listener.AddressStepListener;
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv.models.AddressStage;
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv.models.RowAddressCsv;
 import fr.natsystem.tp_adresse_test.batch.common.listener.AddressSkipListener;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +43,31 @@ import lombok.extern.slf4j.Slf4j;
 public class PartitionerStepConfig {
 
     private static final int SKIP_LIMIT = 1000;
+    private static final String[] ADDRESS_FIELD_NAMES = {
+            "id",
+            "idFantoir",
+            "numero",
+            "rep",
+            "nomVoie",
+            "codePostal",
+            "codeInsee",
+            "nomCommune",
+            "codeInseeAncienneCommune",
+            "nomAncienneCommune",
+            "x",
+            "y",
+            "lon",
+            "lat",
+            "typePosition",
+            "alias",
+            "nomLd",
+            "libelleAcheminement",
+            "nomAfnor",
+            "sourcePosition",
+            "sourceNomVoie",
+            "certificationCommune",
+            "cadParcelles"
+    };
     private final AddressBatchProperties properties;
     
     @Bean
@@ -144,7 +168,7 @@ public class PartitionerStepConfig {
         JobRepository jobRepository, 
         PlatformTransactionManager txManager,
         @Qualifier("csvReaderP") FlatFileItemReader<RowAddressCsv> reader,
-        AddressStageProcessor processor,
+        CompositeItemProcessor<RowAddressCsv, AddressStage> compositeProcessor,
         @Qualifier("jdbcStageWriter") JdbcBatchItemWriter<AddressStage> jdbcStageWriter,
         AddressStepListener stepListener,
         AddressSkipListener skipListener,
@@ -154,7 +178,7 @@ public class PartitionerStepConfig {
         return new StepBuilder("loadCsvToStageWorkerStep", jobRepository)
         .<RowAddressCsv, AddressStage>chunk(chunkSize)
         .reader(reader)
-        .processor(processor)
+        .processor(compositeProcessor)
         .writer(jdbcStageWriter)
         .transactionManager(txManager)
         .faultTolerant()
@@ -187,9 +211,12 @@ public class PartitionerStepConfig {
         .name("addressCsvReaderP")
         .resource(inputFile)
         .linesToSkip(startLine)
-        .lineMapper(new AddressLineMapper())
-        .saveState(true)
         .maxItemCount(endLine - startLine + 1)
+        .delimited()
+        .delimiter(";")
+        .strict(true)
+        .names(ADDRESS_FIELD_NAMES)
+        .fieldSetMapper(new RecordFieldSetMapper<>(RowAddressCsv.class))
         .build();
     }
 
@@ -208,34 +235,32 @@ public class PartitionerStepConfig {
                 .itemPreparedStatementSetter((item, ps) -> {
                     int i = 1;
 
-                    ps.setString(i++, item.getLineHash());
-                    ps.setObject(i++, item.getLineNumber());
-                    ps.setString(i++, item.getId());
-                    ps.setString(i++, item.getIdFantoir());
-                    ps.setObject(i++, item.getNumero());
-                    ps.setString(i++, item.getRep());
-                    ps.setString(i++, item.getNomVoie());
-                    ps.setString(i++, item.getCodePostal());
-                    ps.setString(i++, item.getCodeInsee());
-                    ps.setString(i++, item.getNomCommune());
-                    ps.setString(i++, item.getCodeInseeAncienneCommune());
-                    ps.setString(i++, item.getNomAncienneCommune());
-                    ps.setDouble(i++, item.getX());
-                    ps.setDouble(i++, item.getY());
-                    ps.setDouble(i++, item.getLon());
-                    ps.setDouble(i++, item.getLat());
-                    ps.setString(i++, item.getTypePosition());
-                    ps.setString(i++, item.getAlias());
-                    ps.setString(i++, item.getNomLd());
-                    ps.setString(i++, item.getLibelleAcheminement());
-                    ps.setString(i++, item.getNomAfnor());
-                    ps.setString(i++, item.getSourcePosition());
-                    ps.setString(i++, item.getSourceNomVoie());
-                    ps.setObject(i++, item.getCertificationCommune());
-                    ps.setString(i++, item.getCadParcelles());
+                    ps.setString(i++, item.lineHash());
+                    ps.setString(i++, item.id());
+                    ps.setString(i++, item.idFantoir());
+                    ps.setObject(i++, item.numero());
+                    ps.setString(i++, item.rep());
+                    ps.setString(i++, item.nomVoie());
+                    ps.setString(i++, item.codePostal());
+                    ps.setString(i++, item.codeInsee());
+                    ps.setString(i++, item.nomCommune());
+                    ps.setString(i++, item.codeInseeAncienneCommune());
+                    ps.setString(i++, item.nomAncienneCommune());
+                    ps.setDouble(i++, item.x());
+                    ps.setDouble(i++, item.y());
+                    ps.setDouble(i++, item.lon());
+                    ps.setDouble(i++, item.lat());
+                    ps.setString(i++, item.typePosition());
+                    ps.setString(i++, item.alias());
+                    ps.setString(i++, item.nomLd());
+                    ps.setString(i++, item.libelleAcheminement());
+                    ps.setString(i++, item.nomAfnor());
+                    ps.setString(i++, item.sourcePosition());
+                    ps.setString(i++, item.sourceNomVoie());
+                    ps.setObject(i++, item.certificationCommune());
+                    ps.setString(i++, item.cadParcelles());
                 })
                 .assertUpdates(false)
                 .build();
     }
-
 }

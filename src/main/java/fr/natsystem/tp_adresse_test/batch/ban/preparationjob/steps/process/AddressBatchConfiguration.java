@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process;
 
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;

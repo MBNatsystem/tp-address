@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
 import java.util.HashMap;
 import java.util.Map;

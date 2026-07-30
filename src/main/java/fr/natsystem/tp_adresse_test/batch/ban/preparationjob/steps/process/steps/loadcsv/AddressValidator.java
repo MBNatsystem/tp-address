@@ -1,11 +1,13 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
 import java.util.regex.Pattern;
 
-import org.springframework.batch.infrastructure.item.file.transform.FieldSet;
 import org.springframework.batch.infrastructure.item.validator.ValidationException;
+import org.springframework.batch.infrastructure.item.validator.Validator;
+import org.springframework.stereotype.Component;
 
-public class AddressValidator  {
+@Component
+public class AddressValidator implements Validator<RowAddressCsv> {
 
     // Expression reguliere pour valider le format de l'identifiant BAN
     private static final Pattern ID_PATTERN = Pattern.compile(
@@ -22,23 +24,24 @@ public class AddressValidator  {
     private static final String ID = "id";
     
     // Methode pour valider les champs d'une ligne CSV representant une adresse
-    public void validate(FieldSet fs, int lineNumber) {
-        String id = fs.readString(ID);
-        String codeInsee = fs.readString(CODE_INSEE);
+    @Override
+    public void validate(RowAddressCsv addressCsv) {
+        String id = addressCsv.id();
+        String codeInsee = addressCsv.codeInsee();
 
 
-        require(id, ID, lineNumber);
-        require(codeInsee, CODE_INSEE, lineNumber);
+        require(id, ID);
+        require(codeInsee, CODE_INSEE);
 
-        checkPattern(id, ID_PATTERN, ID, lineNumber);
-        checkPattern(codeInsee, CODE_INSEE_PATTERN, CODE_INSEE, lineNumber);
+        checkPattern(id, ID_PATTERN, ID);
+        checkPattern(codeInsee, CODE_INSEE_PATTERN, CODE_INSEE);
 
     }
 
     // Methode pour verifier qu'une valeur n'est pas vide
-    private void require(String value, String field, int lineNumber) {
+    private void require(String value, String field) {
         if (value==null || value.isBlank()) {
-            throw invalid(lineNumber, field + " obligatoire");
+            throw new ValidationException(field + " obligatoire");
         }
     }
 
@@ -46,17 +49,12 @@ public class AddressValidator  {
     private void checkPattern(
             String value,
             Pattern pattern,
-            String field,
-            int lineNumber
+            String field
     ) {
         if (!pattern.matcher(value).matches()) {
-            throw invalid(lineNumber, field + " invalide : " + value);
+            throw new ValidationException( field + " invalide : " + value);
         }
     }
 
-    // Methode pour creer une exception de validation avec un message detaille
-    private ValidationException invalid(int lineNumber, String reason) {
-        return new ValidationException("Ligne " + lineNumber + " : " + reason);
-    }
     
 }

@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.initialize;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.initialize;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.scope.context.ChunkContext;

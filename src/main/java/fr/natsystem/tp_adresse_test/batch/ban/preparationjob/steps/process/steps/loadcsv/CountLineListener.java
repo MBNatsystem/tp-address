@@ -1,12 +1,10 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.batch.core.listener.ItemProcessListener;
 import org.springframework.stereotype.Component;
 
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv.models.AddressStage;
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.loadcsv.models.RowAddressCsv;
 import lombok.extern.slf4j.Slf4j;
 
 @Component

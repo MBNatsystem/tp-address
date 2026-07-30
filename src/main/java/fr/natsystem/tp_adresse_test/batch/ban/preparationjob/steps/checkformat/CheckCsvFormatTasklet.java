@@ -36,7 +36,6 @@ public class CheckCsvFormatTasklet implements Tasklet{
             .filter(path -> path.getFileName().toString().endsWith(".csv"))
             .findFirst()
             .orElseThrow();
-       
 
             try (BufferedReader reader = Files.newBufferedReader(csv,StandardCharsets.UTF_8)) {
                 String firstLine = reader.readLine();

@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.job.steps.initialize;
+package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.synchro;
 
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
@@ -9,17 +9,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+
 @Configuration
-public class InitializeDbStepConfig {
-        
-        @Bean
-        public Step initializeDbStep(
-                JobRepository jobRepository,
-                PlatformTransactionManager transactionManager,
-                @Qualifier("initializeDbTasklet") Tasklet tasklet
-        ) {
-        return new StepBuilder("initializeDbStep", jobRepository)
+public class SynchroPlanStepConfig {
+    @Bean
+    public Step synchroPlanStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            @Qualifier("synchroPlanTasklet") Tasklet tasklet
+    ) {
+        return new StepBuilder("synchroPlanStep", jobRepository)
                 .tasklet(tasklet, transactionManager)
                 .build();
-        }
+    }
 }
+
