@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
@@ -54,9 +53,6 @@ public class PreparationJobListener implements JobExecutionListener{
         SummaryCounts summaryCounts = getSummaryCounts();
 
         updateExitStatus(preparationJobExecution);
-
-        //TODO deplacer ceci dans un step a part
-        moveCsvFile(preparationJobExecution);
 
         JobExecution childJobExecution = findChildJobExecution(preparationJobExecution);
 
@@ -200,13 +196,13 @@ public class PreparationJobListener implements JobExecutionListener{
 
     private void write(StringBuilder report, JobExecution preparationJobExecution) {
 
-        LocalDateTime dateFin = preparationJobExecution.getEndTime();
-        Assert.notNull(dateFin, END_TIME_MESSAGE_EXCEPTION);
+        LocalDateTime dateDebut = preparationJobExecution.getStartTime();
+        Assert.notNull(dateDebut, START_TIME_MESSAGE_EXCEPTION);
 
         try {
             String reportFileName = "rapport_"+
                 preparationJobExecution.getJobInstance().getJobName()+"_"+
-                dateFin
+                dateDebut
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
 
             Path reportFile = properties.getReportDirectory()
@@ -230,34 +226,6 @@ public class PreparationJobListener implements JobExecutionListener{
                 .findFirst();
     }
 
-    //TODO déplacer ce travail dans un step
-    private void moveCsvFile(JobExecution jobExecution) {
-
-        if(Constant.NO_INPUT_FILE.equals(jobExecution.getExitStatus().getExitCode()) || Constant.MULTIPLE_FILES_FOUND.equals(jobExecution.getExitStatus().getExitCode())){
-            return;
-        }
-
-        Path directory = properties.getInputDirectory();
-        Path csv;
-
-        try (Stream<Path> files = Files.list(directory)) {
-
-            csv = files
-                .filter(Files::isRegularFile)
-                .filter(path -> path.getFileName().toString().endsWith(".csv"))
-                .findFirst()
-                .orElseThrow();
-
-            LocalDateTime dateFin = jobExecution.getEndTime();
-            Assert.notNull(dateFin, END_TIME_MESSAGE_EXCEPTION);
-
-            Path archiveDirectory = properties.getArchiveDirectory().resolve(dateFin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"))+"_archive_"+csv.getFileName());
-
-            Files.move(csv, archiveDirectory);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private SummaryCounts getSummaryCounts() {
         return new SummaryCounts(

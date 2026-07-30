@@ -147,6 +147,20 @@ public class AddressController {
 
     }
 
+    @PostMapping("ban/restart/{jobExecutionId}")
+    public ResponseEntity<BatchLaunchResponse> postRestartBatch(
+        @PathVariable long jobExecutionId
+    ) throws JobRestartException{
+        JobExecution execution = jobRepository.getJobExecution(jobExecutionId);
+        if(execution == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new BatchLaunchResponse(jobExecutionId, "NOT_FOUND"));
+        }
+        JobExecution recoverExecution = jobOperator.recover(execution);
+        JobExecution restarExecution = jobOperator.restart(recoverExecution);
+        return ResponseEntity.accepted()
+            .body(new BatchLaunchResponse(restarExecution.getId(), restarExecution.getStatus().name()));
+    }
+
     @GetMapping("/batch/statut/{jobExecutionId}")
     public ResponseEntity<BatchExecutionStatusResponse> getBatchStatus(
             @PathVariable long jobExecutionId) {
@@ -175,8 +189,7 @@ public class AddressController {
 
         String checksum = execution
                 .getExecutionContext()
-                .getString(Constant.CHECKSUM, null);
-
+                .getString(Constant.CHECKSUM);
         BatchExecutionStatusResponse response =
                 new BatchExecutionStatusResponse(
                         execution.getId(),
@@ -260,19 +273,8 @@ public class AddressController {
         ).toJobParameters();
 
                 try {
-                    //jobOperator.start(importDvfJob, jobParameters);
                     jobOperator.start(importDvfJob, jobParameters);
-                } catch (JobInstanceAlreadyCompleteException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (JobExecutionAlreadyRunningException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (InvalidJobParametersException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (JobRestartException e) {
-                    // TODO Auto-generated catch block
+                } catch (JobInstanceAlreadyCompleteException|JobExecutionAlreadyRunningException|InvalidJobParametersException|JobRestartException e) {
                     e.printStackTrace();
                 }
         return ResponseEntity.accepted().build();
@@ -285,19 +287,8 @@ public class AddressController {
         ).toJobParameters();
 
                 try {
-                    //jobOperator.start(importDvfJob, jobParameters);
                     jobOperator.start(geoContourJob, jobParameters);
-                } catch (JobInstanceAlreadyCompleteException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (JobExecutionAlreadyRunningException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (InvalidJobParametersException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (JobRestartException e) {
-                    // TODO Auto-generated catch block
+                } catch (JobInstanceAlreadyCompleteException|JobExecutionAlreadyRunningException|InvalidJobParametersException|JobRestartException e) {
                     e.printStackTrace();
                 }
         return ResponseEntity.accepted().build();

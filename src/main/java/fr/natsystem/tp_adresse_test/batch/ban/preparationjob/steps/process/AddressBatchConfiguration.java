@@ -21,7 +21,8 @@ public class AddressBatchConfiguration  {
         @Qualifier("partitionStep") Step partitionStep,
         @Qualifier("detectDuplicatesAndConflictsStep") Step detectDuplicatesAndConflictsStep,
         @Qualifier("synchroPlanStep") Step synchroPlanStep,
-        @Qualifier("finalImportStep") Step finalImportStep
+        @Qualifier("finalImportStep") Step finalImportStep,
+        @Qualifier("archiveCsvStep") Step archiveCsvStep
     ){
         return new JobBuilder("importAddressesJob", jobRepository)
         .start(initializeDbStep)
@@ -29,6 +30,7 @@ public class AddressBatchConfiguration  {
         .next(detectDuplicatesAndConflictsStep)
         .next(synchroPlanStep)
         .next(finalImportStep)
+        .next(archiveCsvStep)
         .build();
     }
 }

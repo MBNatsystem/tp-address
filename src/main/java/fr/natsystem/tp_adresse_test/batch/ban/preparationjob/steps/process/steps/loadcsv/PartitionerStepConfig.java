@@ -1,8 +1,6 @@
 package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -115,52 +113,11 @@ public class PartitionerStepConfig {
                     "Aucun fichier CSV trouve dans le repertoire : " + directory
                 ));
 
-            //long numberOfLines = countPhysicalLines(inputFile);
-            //return new CsvLinePartitioner(Math.toIntExact(numberOfLines));
-            //TODO trouver une solution durable
             try (Stream<String> lines = Files.lines(inputFile)) {
                 long totalLines = lines.skip(1).count();
                 return new CsvLinePartitioner(Math.toIntExact(totalLines));
             }
         }
-    }
-
-    private static long countPhysicalLines(Path path) throws IOException {
-        byte[] buffer = new byte[8 * 1024 * 1024];
-
-        long lineCount = 0;
-        long totalBytes = 0;
-        int lastByte = -1;
-
-        try (InputStream input = new BufferedInputStream(
-            Files.newInputStream(path),
-            buffer.length
-        )) {
-            int read;
-
-            while ((read = input.read(buffer)) != -1) {
-                if (read == 0) {
-                    continue;
-                }
-
-                totalBytes += read;
-                lastByte = buffer[read - 1] & 0xff;
-
-                for (int i = 0; i < read; i++) {
-                    if (buffer[i] == (byte) '\n') {
-                        lineCount++;
-                    }
-                }
-            }
-        }
-
-        if (totalBytes == 0) {
-            return 0;
-        }
-
-        return lastByte == '\n'
-            ? lineCount
-            : lineCount + 1;
     }
         
     @Bean
