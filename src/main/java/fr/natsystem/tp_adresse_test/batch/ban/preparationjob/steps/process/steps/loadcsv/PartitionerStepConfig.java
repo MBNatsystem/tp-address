@@ -115,13 +115,13 @@ public class PartitionerStepConfig {
                     "Aucun fichier CSV trouve dans le repertoire : " + directory
                 ));
 
-            long numberOfLines = countPhysicalLines(inputFile);
-            return new CsvLinePartitioner(Math.toIntExact(numberOfLines));
+            //long numberOfLines = countPhysicalLines(inputFile);
+            //return new CsvLinePartitioner(Math.toIntExact(numberOfLines));
             //TODO trouver une solution durable
-            /*try (Stream<String> lines = Files.lines(inputFile)) {
+            try (Stream<String> lines = Files.lines(inputFile)) {
                 long totalLines = lines.skip(1).count();
                 return new CsvLinePartitioner(Math.toIntExact(totalLines));
-            }*/
+            }
         }
     }
 

@@ -32,7 +32,7 @@ public class InitializeDbTasklet implements Tasklet{
             CREATE UNLOGGED TABLE IF NOT EXISTS address_staging  (
                 stage_id BIGSERIAL PRIMARY KEY,
 
-                line_number INTEGER NOT NULL,
+                line_number INTEGER,
                 line_hash TEXT,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
 
@@ -72,7 +72,7 @@ public class InitializeDbTasklet implements Tasklet{
                 reject_type VARCHAR(64) NOT NULL,
                 reject_reason VARCHAR(500) NOT NULL,
 
-                line_number INT NULL,
+                line_number INT,
                 line_hash TEXT,
                 stage_id BIGINT,
                 id TEXT,
@@ -88,7 +88,7 @@ public class InitializeDbTasklet implements Tasklet{
                 stage_id INTEGER PRIMARY KEY,
                 id TEXT NOT NULL,
                 line_hash TEXT NOT NULL,
-                line_number INTEGER NOT NULL,
+                line_number INTEGER,
                 created_at TIMESTAMPTZ DEFAULT NOW()
             );
                 """);
