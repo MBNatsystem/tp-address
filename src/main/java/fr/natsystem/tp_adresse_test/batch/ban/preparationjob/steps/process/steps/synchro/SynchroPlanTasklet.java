@@ -1,57 +1,47 @@
 package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.synchro;
 
+import java.nio.charset.StandardCharsets;
+
+import javax.sql.DataSource;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component("synchroPlanTasklet")
-@AllArgsConstructor
-public class SynchroPlanTasklet implements Tasklet{
-    
-    private final JdbcTemplate jdbcTemplate;
+public class SynchroPlanTasklet implements Tasklet {
 
+    private final DataSource dataSource;
+    private final Resource sqlScript;
+
+    public SynchroPlanTasklet(
+            DataSource dataSource,
+            @Value("${batch.address.sql.synchro-plan-script}")
+            Resource sqlScript) {
+
+        this.dataSource = dataSource;
+        this.sqlScript = sqlScript;
+    }
 
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    public @Nullable RepeatStatus execute(
+            StepContribution contribution,
+            ChunkContext chunkContext) {
 
-        //Gestion des nouvelles insertions
-        jdbcTemplate.update("""
-                DROP TABLE IF EXISTS address_sync_plan;
-                """);
+        ResourceDatabasePopulator populator =
+                new ResourceDatabasePopulator(sqlScript);
 
-        //Gestion des modifications
-        jdbcTemplate.update("""
-                CREATE UNLOGGED TABLE address_sync_plan AS
-                SELECT
-                    COALESCE(i.id, baf.id) AS id,
-                    i.stage_id,
-                    CASE
-                        WHEN i.id IS NULL THEN 'DELETE'
-                        WHEN baf.id IS NULL THEN 'INSERT'
-                        ELSE 'UPDATE'
-                    END AS action,
-                    baf.line_hash AS old_hash,
-                    i.line_hash AS new_hash,
-                    NOW() AS created_at
-                FROM address_to_insert i
-                FULL JOIN ban_address_final baf
-                ON baf.id = i.id
-                WHERE i.id IS NULL
-                OR baf.id IS NULL
-                OR baf.line_hash IS DISTINCT FROM i.line_hash;
-                """);
-
-        jdbcTemplate.update("""
-                ALTER TABLE address_sync_plan
-                ADD PRIMARY KEY (id);
-                """);
+        populator.setSqlScriptEncoding(StandardCharsets.UTF_8.name());
+        populator.execute(dataSource);
 
         return RepeatStatus.FINISHED;
     }

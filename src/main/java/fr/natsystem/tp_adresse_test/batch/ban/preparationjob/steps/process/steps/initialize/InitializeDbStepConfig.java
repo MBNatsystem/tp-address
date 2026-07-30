@@ -20,7 +20,6 @@ public class InitializeDbStepConfig {
         ) {
         return new StepBuilder("initializeDbStep", jobRepository)
                 .tasklet(tasklet, transactionManager)
-                .allowStartIfComplete(true)
                 .build();
         }
 }

@@ -224,7 +224,7 @@ public class PartitionerStepConfig {
     @Bean
     public JdbcBatchItemWriter<AddressStage> jdbcStageWriter(
             DataSource dataSource,
-            @Value("${batch.address.insert-stage-sql}") Resource insertSql
+            @Value("${batch.address.sql.insert-stage-sql}") Resource insertSql
     ) throws IOException {
 
         String sql = insertSql.getContentAsString(StandardCharsets.UTF_8);
