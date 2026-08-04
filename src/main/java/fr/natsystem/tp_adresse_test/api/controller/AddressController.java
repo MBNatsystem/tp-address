@@ -125,11 +125,21 @@ public class AddressController {
             URI downloadUrl = parameters.downloadUrl()!=null
                 ? parameters.downloadUrl()
                 : batchProperties.getDownloadUrl();
+            
+            String inputDirectory = parameters.inputDirectory()!=null
+                ?parameters.inputDirectory()
+                :batchProperties.getInputDirectory().toString();
+            
+            String inputFile = parameters.extractFileName()!=null
+                ?parameters.extractFileName()
+                :batchProperties.getExtractFileName();
 
             JobParameters params = new JobParametersBuilder()
                 .addLong(RUN_ID, System.currentTimeMillis(), true)
                 .addJobParameter(Constant.DOWNLOADED, download, Boolean.class, false)
                 .addString(Constant.DOWNLOAD_URL, downloadUrl.toString(), false)
+                .addString(Constant.INPUT_FILE, inputFile, false)
+                .addString(Constant.INPUT_DIRECTORY, inputDirectory, false)
                 .toJobParameters();
             
             JobExecution execution = addressAsyncJobOperator.start(preparationJob, params);

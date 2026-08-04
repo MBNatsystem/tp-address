@@ -39,7 +39,6 @@ CREATE UNLOGGED TABLE address_reject (
     reject_id BIGSERIAL PRIMARY KEY,
     reject_type VARCHAR(64) NOT NULL,
     reject_reason VARCHAR(500) NOT NULL,
-    line_number INT,
     line_hash TEXT,
     stage_id BIGINT,
     id TEXT,
@@ -51,7 +50,6 @@ CREATE UNLOGGED TABLE address_to_insert (
     stage_id INTEGER PRIMARY KEY,
     id TEXT NOT NULL,
     line_hash TEXT NOT NULL,
-    line_number INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

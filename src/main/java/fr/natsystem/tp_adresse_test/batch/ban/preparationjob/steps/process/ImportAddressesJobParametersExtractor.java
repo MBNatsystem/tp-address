@@ -19,6 +19,18 @@ public class ImportAddressesJobParametersExtractor implements JobParametersExtra
         ExecutionContext executionContext = stepExecution
             .getJobExecution()
             .getExecutionContext();
+
+        JobParameters parentParameters = stepExecution
+                .getJobExecution()
+                .getJobParameters();
+
+        String inputDirectory = parentParameters.getString(
+                Constant.INPUT_DIRECTORY
+        );
+
+        String inputFile = parentParameters.getString(
+                Constant.INPUT_FILE
+        );
         
         if(!executionContext.containsKey(Constant.CHECKSUM)){
             throw new IllegalStateException("No checksum found, can t execute the importAddressesJob");
@@ -26,6 +38,8 @@ public class ImportAddressesJobParametersExtractor implements JobParametersExtra
 
         return new JobParametersBuilder()
         .addString(Constant.CHECKSUM, executionContext.getString(Constant.CHECKSUM), true)
+        .addString(Constant.INPUT_FILE, inputFile, false)
+        .addString(Constant.INPUT_DIRECTORY, inputDirectory, false)
         .toJobParameters();
     }
     

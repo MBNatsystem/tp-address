@@ -24,7 +24,6 @@ ADD PRIMARY KEY (id);
 INSERT INTO address_reject (
     reject_type,
     reject_reason,
-    line_number,
     line_hash,
     stage_id,
     id,
@@ -39,7 +38,6 @@ SELECT
         WHEN st.has_conflict THEN 'conflit metier'
         ELSE 'doublon'
     END,
-    s.line_number,
     s.line_hash,
     s.stage_id,
     s.id,
@@ -61,8 +59,7 @@ CREATE UNLOGGED TABLE address_to_insert AS
 SELECT
     s.stage_id,
     s.id,
-    s.line_hash,
-    s.line_number
+    s.line_hash
 FROM address_id_stats st
 JOIN address_staging s
     ON s.stage_id = st.keep_stage_id

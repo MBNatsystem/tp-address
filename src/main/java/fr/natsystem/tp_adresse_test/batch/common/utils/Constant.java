@@ -26,4 +26,8 @@ public class Constant {
     public static final String REPORT_FILE_NAME = "reportFileName";
     public static final String DOWNLOAD_URL = "DOWNLOAD_URL";
 
+    public static final String INPUT_FILE = "inputFile";
+
+    public static final String INPUT_DIRECTORY = "inputDirectory";
+
 }

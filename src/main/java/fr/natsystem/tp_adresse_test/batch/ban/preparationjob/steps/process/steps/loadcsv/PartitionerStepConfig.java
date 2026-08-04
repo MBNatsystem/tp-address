@@ -1,10 +1,10 @@
 package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -32,6 +32,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.common.listener.AddressSkipListener;
+import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,23 +102,51 @@ public class PartitionerStepConfig {
 
     @Bean
     @StepScope
-    public CsvLinePartitioner partitioner() throws IOException{
-        Path directory = properties.getInputDirectory();
-        
-        try (Stream<Path> files = Files.list(directory)) {
-            Path inputFile = files
-                .filter(Files::isRegularFile)
-                .filter(path -> path.getFileName().toString().endsWith(".csv"))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                    "Aucun fichier CSV trouve dans le repertoire : " + directory
-                ));
+    public CsvLinePartitioner partitioner(
+        @Value("#{jobParameters['"+Constant.INPUT_FILE+"']}") String inputFile,
+        @Value("#{jobParameters['"+Constant.INPUT_DIRECTORY+"']}") String inputDirectory
+    ) throws IOException{
 
-            try (Stream<String> lines = Files.lines(inputFile)) {
-                long totalLines = lines.skip(1).count();
-                return new CsvLinePartitioner(Math.toIntExact(totalLines));
+        Path file = Path.of(inputDirectory).resolve(inputFile);
+
+        long physicalLines = countPhysicalLines(file);
+
+        int dataLines =(int) Math.max(0, physicalLines - 1);
+
+        return new CsvLinePartitioner(dataLines);
+    }
+
+    private static long countPhysicalLines(Path file) throws IOException {
+        byte[] buffer = new byte[1024 * 1024];
+
+        long lineCount = 0;
+        boolean hasContent = false;
+        byte lastByte = 0;
+
+        try (var input = new BufferedInputStream(
+                Files.newInputStream(file),
+                buffer.length
+        )) {
+            int bytesRead;
+
+            while ((bytesRead = input.read(buffer)) != -1) {
+                hasContent = true;
+                lastByte = buffer[bytesRead - 1];
+
+                for (int i = 0; i < bytesRead; i++) {
+                    if (buffer[i] == '\n') {
+                        lineCount++;
+                    }
+                }
             }
         }
+
+        // Cas dernière ligne
+        if (hasContent && lastByte != '\n') {
+            lineCount++;
+        }
+
+        return lineCount;
     }
         
     @Bean
@@ -153,20 +182,15 @@ public class PartitionerStepConfig {
     @Bean
     public FlatFileItemReader<RowAddressCsv> csvReaderP(
         @Value("#{stepExecutionContext['startLine']}") Integer startLine,
-        @Value("#{stepExecutionContext['endLine']}") Integer endLine
+        @Value("#{stepExecutionContext['endLine']}") Integer endLine,
+        @Value("#{jobParameters['"+Constant.INPUT_FILE+"']}") String inputFile,
+        @Value("#{jobParameters['"+Constant.INPUT_DIRECTORY+"']}") String inputDirectory
     ){
-        Resource inputFile = new FileSystemResource(
-            properties
-            .getInputDirectory()
-            .resolve(
-                properties
-                .getExtractFileName()
-            )
-        );
 
+        Resource resource = new FileSystemResource(Path.of(inputDirectory).resolve(inputFile));
         return new FlatFileItemReaderBuilder<RowAddressCsv>()
         .name("addressCsvReaderP")
-        .resource(inputFile)
+        .resource(resource)
         .linesToSkip(startLine)
         .maxItemCount(endLine - startLine + 1)
         .delimited()
