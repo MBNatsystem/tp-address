@@ -19,10 +19,10 @@ import java.util.Objects;
 public class AddressStageProcessor implements ItemProcessor<RowAddressCsv, AddressStage> {
 
     @Value("#{jobParameters['codePostal']}")
-    private String codePostal;
+    private final String codePostal;
 
     @Value("#{jobParameters['codeInsee']}")
-    private String codeInsee;
+    private final String codeInsee;
 
     @Override
     public AddressStage process(RowAddressCsv address) {

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -69,6 +70,7 @@ class PreparationJobListenerTests {
     }
     
     @Test
+    @DisplayName(value = "Rapport de No Input File")
     void shouldGenerateNoInputFileReport() throws IOException{
 
         JobExecution preparationExecution = MetaDataInstanceFactory.createJobExecution("preparationJob", 1L, 1L);
@@ -92,6 +94,7 @@ class PreparationJobListenerTests {
     }
 
     @Test
+    @DisplayName("Rapport de aucun Checksum")
     void shouldGenerateNoChecksumReport() throws IOException{
 
         JobExecution preparationExecution = MetaDataInstanceFactory.createJobExecution("preparationJob", 1L, 1L);
@@ -116,6 +119,7 @@ class PreparationJobListenerTests {
 
 
     @Test
+    @DisplayName("Rapport Complet")
     void shouldGenerateReport() throws IOException{
 
         JobExecution preparationExecution = 
@@ -188,10 +192,6 @@ class PreparationJobListenerTests {
                 preparationExecution.getJobInstance().getJobName()+"_"+
                 now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
         assertEquals(report.getFileName().toString(), reportFileName);
-        
-        log.info("debut de rapport");
-        log.info(Files.readString(report));
-        log.info("fin de rapport");
         
         assertThat(Files.readString(report))
         .contains("Rapport de traitement")
