@@ -1,0 +1,104 @@
+
+--BAN TABLE
+DROP TABLE IF EXISTS address_staging;
+DROP TABLE IF EXISTS address_reject;
+DROP TABLE IF EXISTS address_to_insert;
+DROP TABLE IF EXISTS address_sync_plan;
+DROP TABLE IF EXISTS row_address_dvf;
+
+CREATE TABLE IF NOT EXISTS ban_address_final (
+    id TEXT PRIMARY KEY,
+    id_fantoir TEXT,
+    numero INTEGER,
+    rep TEXT,
+    nom_voie TEXT,
+    code_postal TEXT,
+    code_insee TEXT,
+    nom_commune TEXT,
+    code_insee_ancienne_commune TEXT,
+    nom_ancienne_commune TEXT,
+    x REAL,
+    y REAL,
+    lon REAL,
+    lat REAL,
+    type_position TEXT,
+    alias TEXT,
+    nom_ld TEXT,
+    libelle_acheminement TEXT,
+    nom_afnor TEXT,
+    source_position TEXT,
+    source_nom_voie TEXT,
+    certification_commune INTEGER,
+    cad_parcelles TEXT,
+    line_hash TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS address_staging  (
+    stage_id BIGSERIAL PRIMARY KEY,
+
+    line_number INTEGER,
+    line_hash TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    id TEXT,
+    id_fantoir TEXT,
+    numero INTEGER,
+    rep TEXT,
+    nom_voie TEXT,
+    code_postal TEXT,
+    code_insee TEXT,
+    nom_commune TEXT,
+    code_insee_ancienne_commune TEXT,
+    nom_ancienne_commune TEXT,
+    x REAL,
+    y REAL,
+    lon REAL,
+    lat REAL,
+    type_position TEXT,
+    alias TEXT,
+    nom_ld TEXT,
+    libelle_acheminement TEXT,
+    nom_afnor TEXT,
+    source_position TEXT,
+    source_nom_voie TEXT,
+    certification_commune INTEGER,
+    cad_parcelles TEXT
+
+);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS address_reject (
+
+    reject_id BIGSERIAL PRIMARY KEY,
+
+    reject_type VARCHAR(64) NOT NULL,
+    reject_reason VARCHAR(500) NOT NULL,
+
+    line_number INT,
+    line_hash TEXT,
+    stage_id BIGINT,
+    id TEXT,
+
+    occurrence_count INTEGER,
+
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNLOGGED TABLE IF NOT EXISTS address_to_insert (
+    stage_id INTEGER PRIMARY KEY,
+    id TEXT NOT NULL,
+    line_hash TEXT NOT NULL,
+    line_number INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
+CREATE UNLOGGED TABLE IF NOT EXISTS address_sync_plan (
+    id TEXT PRIMARY KEY,
+    stage_id BIGINT,
+    action TEXT NOT NULL,
+    old_hash TEXT,
+    new_hash TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

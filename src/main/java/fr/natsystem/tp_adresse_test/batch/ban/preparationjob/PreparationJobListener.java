@@ -74,7 +74,7 @@ public class PreparationJobListener implements JobExecutionListener{
         JobParameters childParameters = new JobParametersBuilder()
                 .addString(Constant.CHECKSUM, checksum, true)
                 .toJobParameters();
-
+        
         return jobRepository.getLastJobExecution(
                         importAddressesJob.getName(),
                         childParameters

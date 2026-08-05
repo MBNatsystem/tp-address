@@ -15,14 +15,17 @@ import java.util.Objects;
 @Slf4j
 @Component
 @StepScope
-@RequiredArgsConstructor
 public class AddressStageProcessor implements ItemProcessor<RowAddressCsv, AddressStage> {
 
-    @Value("#{jobParameters['codePostal']}")
-    private String codePostal;
+    private final String codePostal;
+    private final String codeInsee;
 
-    @Value("#{jobParameters['codeInsee']}")
-    private String codeInsee;
+    public AddressStageProcessor(
+            @Value("#{jobParameters['codePostal']}") String codePostal,
+            @Value("#{jobParameters['codeInsee']}") String codeInsee) {
+        this.codePostal = codePostal;
+        this.codeInsee = codeInsee;
+    }
 
     @Override
     public AddressStage process(RowAddressCsv address) {
