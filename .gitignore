@@ -30,6 +30,10 @@ data/**
 src/main/resources/adresses-79.csv/
 src/main/resources/application-local.yaml
 src/test/resources/application-test.yaml
+
+
+sonar-project.properties
+
 ### STS ###
 .apt_generated
 .classpath

@@ -94,6 +94,39 @@ class ValidatingItemProcessorTests {
         .isInstanceOf(ValidationException.class);
     }
 
+    @Test
+    @DisplayName(value = "Element rejete, code Insee vide")
+    void shouldRejectBlankCodeInsee(){
+        RowAddressCsv address = new RowAddressCsv(
+        "30258_0600_01430",
+        null,
+        null,
+        null,
+        null,
+        null,
+        "",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    );
+
+        assertThatThrownBy(()-> processor.process(address))
+        .isInstanceOf(ValidationException.class);
+    }
+
     @ParameterizedTest
     @DisplayName(value = "Element rejete, mauvais format d'id")
     @ValueSource(strings = {"302584_0600_01430", "30258_012_01430", "3025845_123456789_01430", "3025845_0600_0143a", "3025845_0600_014300", "3025845_0600_0143"})
