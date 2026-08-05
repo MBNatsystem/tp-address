@@ -13,6 +13,7 @@ import org.springframework.batch.infrastructure.item.database.JdbcBatchItemWrite
 import org.springframework.batch.infrastructure.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.infrastructure.item.file.FlatFileItemReader;
 import org.springframework.batch.infrastructure.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.file.mapping.RecordFieldSetMapper;
 import org.springframework.batch.infrastructure.item.support.CompositeItemProcessor;
 import org.springframework.batch.infrastructure.item.support.builder.CompositeItemProcessorBuilder;
 import org.springframework.batch.infrastructure.item.validator.BeanValidatingItemProcessor;
@@ -26,7 +27,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fr.natsystem.tp_adresse_test.batch.dvf.config.DvfPropertiesConfiguration;
-import fr.natsystem.tp_adresse_test.batch.dvf.linemapper.DvfLineMapper;
 import fr.natsystem.tp_adresse_test.batch.dvf.listener.DvfSkipListener;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.DvfStage;
 import fr.natsystem.tp_adresse_test.batch.dvf.model.RowAddressDvf;
@@ -40,6 +40,48 @@ public class LoadDvfStepConfiguration {
 
     private static final Integer SKIP_LIMIT = 1001;
     private final DvfPropertiesConfiguration properties;
+    private static final String[] DVF_COLUMNS = {
+    "idMutation",
+    "dateMutation",
+    "numeroDisposition",
+    "natureMutation",
+    "valeurFonciere",
+    "adresseNumero",
+    "adresseSuffixe",
+    "adresseNomVoie",
+    "adresseCodeVoie",
+    "codePostal",
+    "codeCommune",
+    "nomCommune",
+    "codeDepartement",
+    "ancienCodeCommune",
+    "ancienNomCommune",
+    "idParcelle",
+    "ancienIdParcelle",
+    "numeroVolume",
+    "lot1Numero",
+    "lot1SurfaceCarrez",
+    "lot2Numero",
+    "lot2SurfaceCarrez",
+    "lot3Numero",
+    "lot3SurfaceCarrez",
+    "lot4Numero",
+    "lot4SurfaceCarrez",
+    "lot5Numero",
+    "lot5SurfaceCarrez",
+    "nombreLots",
+    "codeTypeLocal",
+    "typeLocal",
+    "surfaceReelleBati",
+    "nombrePiecesPrincipales",
+    "codeNatureCulture",
+    "natureCulture",
+    "codeNatureCultureSpeciale",
+    "natureCultureSpeciale",
+    "surfaceTerrain",
+    "longitude",
+    "latitude"
+};
     
     @Bean
     public Step loadDvfStep (
@@ -104,7 +146,10 @@ public class LoadDvfStepConfiguration {
         .name("dvfCsvReader")
         .resource(inputFile)
         .linesToSkip(1)
-        .lineMapper(new DvfLineMapper())
+        .delimited()
+        .delimiter(";")
+        .names(DVF_COLUMNS)
+        .fieldSetMapper(new RecordFieldSetMapper<>(RowAddressDvf.class))
         .saveState(true)
         .build();
     }

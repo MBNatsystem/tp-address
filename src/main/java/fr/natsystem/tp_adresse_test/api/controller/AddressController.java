@@ -277,7 +277,7 @@ public class AddressController {
     }
 
     @PostMapping("dvf/run")
-    public ResponseEntity<?> postRunDvf() {
+    public ResponseEntity<String> postRunDvf() {
         JobParameters jobParameters = new JobParametersBuilder().addLong(
             RUN_ID,System.currentTimeMillis(), true
         ).toJobParameters();
@@ -285,13 +285,14 @@ public class AddressController {
                 try {
                     jobOperator.start(importDvfJob, jobParameters);
                 } catch (JobInstanceAlreadyCompleteException|JobExecutionAlreadyRunningException|InvalidJobParametersException|JobRestartException e) {
-                    e.printStackTrace();
+                    log.warn("Erreur pendant le lancement du job dvf ",e);
+                    return ResponseEntity.internalServerError().body("Instance en cours ou deja lance");
                 }
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("geoContour/run")
-    public ResponseEntity<?> postRunGeoContour() {
+    public ResponseEntity<String> postRunGeoContour() {
         JobParameters jobParameters = new JobParametersBuilder().addLong(
             RUN_ID,System.currentTimeMillis(), true
         ).toJobParameters();
@@ -299,7 +300,8 @@ public class AddressController {
                 try {
                     jobOperator.start(geoContourJob, jobParameters);
                 } catch (JobInstanceAlreadyCompleteException|JobExecutionAlreadyRunningException|InvalidJobParametersException|JobRestartException e) {
-                    e.printStackTrace();
+                    log.warn("Erreur pendant le lancement du job geoContour ",e);
+                    return ResponseEntity.internalServerError().body("Instance en cours ou deja lance");
                 }
         return ResponseEntity.accepted().build();
     }
