@@ -1,7 +1,6 @@
 package fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps.loadcsv;
 
 import fr.natsystem.tp_adresse_test.batch.common.utils.Hash;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
