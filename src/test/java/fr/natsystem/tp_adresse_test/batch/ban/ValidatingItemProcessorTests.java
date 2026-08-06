@@ -1,11 +1,10 @@
-package fr.natsystem.tp_adresse_test;
+package fr.natsystem.tp_adresse_test.batch.ban;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
 import org.springframework.batch.infrastructure.item.validator.ValidatingItemProcessor;
 import org.springframework.batch.infrastructure.item.validator.ValidationException;
 
@@ -16,10 +15,8 @@ import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.process.steps
 
 class ValidatingItemProcessorTests {
     
-    @Mock
     private AddressValidator addressValidator;
 
-    @Mock
     private ValidatingItemProcessor<RowAddressCsv> processor;
 
     @BeforeEach

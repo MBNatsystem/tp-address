@@ -24,23 +24,24 @@ import org.springframework.stereotype.Component;
 import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Hash;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component("prepareInputFileTasklet")
-@AllArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class PrepareInputFileTasklet implements Tasklet{
 
     private final AddressBatchProperties properties;
     
+    private final HttpClient httpClient;
+    
 
     @Override
     public @Nullable RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext){
-        JobParameter<?> downloadParam = contribution.getStepExecution().getJobExecution().getJobParameters().getParameter(Constant.DOWNLOADED);
+        JobParameter<?> downloadParam = contribution.getStepExecution().getJobParameters().getParameter(Constant.DOWNLOADED);
 
         boolean download = downloadParam !=null ? (Boolean) downloadParam.value() : Boolean.FALSE;
-        
         Path directory = properties.getInputDirectory();
 
         try {
@@ -84,16 +85,14 @@ public class PrepareInputFileTasklet implements Tasklet{
 
     private void setChecksum(StepContribution contribution, Path file){
 
-        if(file!=null){
-            contribution
-            .getStepExecution()
-            .getJobExecution()
-            .getExecutionContext()
-            .putString(
-                Constant.CHECKSUM, 
-                Hash.sha256(file)
-            );
-        }
+        contribution
+        .getStepExecution()
+        .getJobExecution()
+        .getExecutionContext()
+        .putString(
+            Constant.CHECKSUM, 
+            Hash.sha256(file)
+        );
     }
 
     private void downloadFile(Path directory, StepContribution contribution) {
@@ -101,7 +100,6 @@ public class PrepareInputFileTasklet implements Tasklet{
             
             Path gzFile = directory.resolve(properties.getDownloadFileName());
             Path file = directory.resolve(properties.getExtractFileName());
-            HttpClient client = HttpClient.newHttpClient();
 
             HttpRequest request;
 
@@ -114,7 +112,7 @@ public class PrepareInputFileTasklet implements Tasklet{
                 .build();
 
 
-            HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(gzFile));
+            HttpResponse<Path> response = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(gzFile));
             log.info("Status HTTP : {}", response.statusCode());
 
             if(response.statusCode()==200){

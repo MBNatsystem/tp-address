@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test;
+package fr.natsystem.tp_adresse_test.batch.ban;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

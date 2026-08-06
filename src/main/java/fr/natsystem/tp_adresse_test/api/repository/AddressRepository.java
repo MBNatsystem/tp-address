@@ -20,6 +20,8 @@ public interface AddressRepository extends
     
     Page<Address> findAll(Specification<Address> spec, Pageable pageable);
 
+    List<Address> findAll(Specification<Address> spec);
+
     @Query(value = """
         SELECT baf.*
         FROM ban_address_final AS baf

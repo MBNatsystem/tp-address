@@ -1,4 +1,4 @@
-package fr.natsystem.tp_adresse_test;
+package fr.natsystem.tp_adresse_test.batch.ban;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,6 +22,7 @@ class FilterItemProcessorTests {
         String filtreCodePostal,
         boolean estGarde
     ){
+        //Given
         AddressStageProcessor processor = new AddressStageProcessor(filtreCodePostal,filtreCodeInsee);
 
         RowAddressCsv address = new RowAddressCsv(
@@ -50,8 +51,10 @@ class FilterItemProcessorTests {
             null
         );
 
+        //When
         AddressStage result = processor.process(address);
 
+        //Then
         assertEquals(estGarde, result!=null);
     }
 }
