@@ -9,20 +9,14 @@ import fr.natsystem.tp_adresse_test.api.dto.BatchLaunchResponse;
 import fr.natsystem.tp_adresse_test.api.dto.BatchParam;
 import fr.natsystem.tp_adresse_test.api.dto.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.service.AddressService;
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.AddressBatchProperties;
-import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
+import fr.natsystem.tp_adresse_test.api.service.BatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.batch.core.job.Job;
-import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
@@ -30,11 +24,8 @@ import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
-import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.CacheControl;
@@ -55,15 +46,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class AddressController {
 
     private final AddressService addressService;
+    private final BatchService batchService;
+
     private final JobOperator jobOperator;
     @Qualifier("addressAsyncJobOperator")
     private final JobOperator addressAsyncJobOperator;
-    private final Job preparationJob;
     private final Job importDvfJob;
     private final Job geoContourJob;
-    private final JobRepository jobRepository;
-    private final AddressBatchProperties batchProperties;
-    private ReentrantLock jobLock = new ReentrantLock();
+    
 
     private static final String RUN_ID = "runId";
 
@@ -99,6 +89,8 @@ public class AddressController {
         @RequestParam(required = true) Double lat,
         @RequestParam(required = true) Double lon
     ) {
+        log.info("lat: {}",lat);
+        log.info("lon: {}", lon);
         return addressService.getAddressByCoordinates(lat, lon);
     }
 
@@ -110,137 +102,30 @@ public class AddressController {
     @PostMapping("ban/run")
     public ResponseEntity<BatchLaunchResponse> postRunBatch(
         @RequestBody BatchParam parameters
-    ) throws Exception{
-
-        if (!jobLock.tryLock()){
+    ) {
+        BatchLaunchResponse response;
+        try {
+            response = batchService.launchBan(parameters);
+        } catch (JobExecutionAlreadyRunningException | JobInstanceAlreadyCompleteException
+                | InvalidJobParametersException | JobRestartException e) {
             return ResponseEntity.status(HttpStatus.LOCKED).body(new BatchLaunchResponse(null,"LOCKED"));
         }
-
-        try{
-
-            Boolean download = parameters.downloadEnabled()!=null
-                ? parameters.downloadEnabled()
-                : batchProperties.getDownloadEnabled();
-            
-            URI downloadUrl = parameters.downloadUrl()!=null
-                ? parameters.downloadUrl()
-                : batchProperties.getDownloadUrl();
-            
-            String inputDirectory = parameters.inputDirectory()!=null
-                ?parameters.inputDirectory()
-                :batchProperties.getInputDirectory().toString();
-            
-            String inputFile = parameters.extractFileName()!=null
-                ?parameters.extractFileName()
-                :batchProperties.getExtractFileName();
-
-            JobParameters params = new JobParametersBuilder()
-                .addLong(RUN_ID, System.currentTimeMillis(), true)
-                .addJobParameter(Constant.DOWNLOADED, download, Boolean.class, false)
-                .addString(Constant.DOWNLOAD_URL, downloadUrl.toString(), false)
-                .addString(Constant.INPUT_FILE, inputFile, false)
-                .addString(Constant.INPUT_DIRECTORY, inputDirectory, false)
-                .toJobParameters();
-            
-            JobExecution execution = addressAsyncJobOperator.start(preparationJob, params);
-
-            return ResponseEntity.accepted()
-                .body(new BatchLaunchResponse(
-                        execution.getId(),
-                        execution.getStatus().name()));
-        }catch(JobExecutionAlreadyRunningException already){
-            log.error(already.getMessage());
-            return ResponseEntity.status(HttpStatus.LOCKED).body(new BatchLaunchResponse(null, "LOCKED"));
-        }finally{
-            jobLock.unlock();
-        }
-
+        return ResponseEntity.accepted().body(response);
     }
 
     @PostMapping("ban/restart/{jobExecutionId}")
     public ResponseEntity<BatchLaunchResponse> postRestartBatch(
         @PathVariable long jobExecutionId
     ) throws JobRestartException{
-        JobExecution execution = jobRepository.getJobExecution(jobExecutionId);
-        if(execution == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new BatchLaunchResponse(jobExecutionId, "NOT_FOUND"));
-        }
-        JobExecution recoverExecution = jobOperator.recover(execution);
-        JobExecution restarExecution = jobOperator.restart(recoverExecution);
         return ResponseEntity.accepted()
-            .body(new BatchLaunchResponse(restarExecution.getId(), restarExecution.getStatus().name()));
+            .body(batchService.restart(jobExecutionId));
     }
 
     @GetMapping("/batch/statut/{jobExecutionId}")
     public ResponseEntity<BatchExecutionStatusResponse> getBatchStatus(
             @PathVariable long jobExecutionId) {
 
-        JobExecution execution =
-                jobRepository.getJobExecution(jobExecutionId);
-
-        if (execution == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(new BatchExecutionStatusResponse(
-                            jobExecutionId,
-                            null,
-                            "NOT_FOUND",
-                            null,
-                            null,
-                            "Aucune execution trouvee pour l'identifiant "
-                                    + jobExecutionId
-                    ));
-        }
-
-        String jobName = execution
-                .getJobInstance()
-                .getJobName();
-
-
-        String checksum = execution
-                .getExecutionContext()
-                .getString(Constant.CHECKSUM);
-        BatchExecutionStatusResponse response =
-                new BatchExecutionStatusResponse(
-                        execution.getId(),
-                        jobName,
-                        execution.getStatus().name(),
-                        execution.getExitStatus().getExitCode(),
-                        checksum,
-                        buildStatusMessage(execution)
-                );
-
-        return ResponseEntity.ok(response);
-    }
-
-    private String buildStatusMessage(
-        JobExecution execution) {
-
-        return switch (execution.getStatus()) {
-            case STARTING ->
-                    "Le batch est en cours de demarrage.";
-
-            case STARTED ->
-                    "Le batch est en cours d'execution.";
-
-            case STOPPING ->
-                    "Le batch est en cours d'arrêt.";
-
-            case STOPPED ->
-                    "Le batch a ete arrête.";
-
-            case COMPLETED ->
-                    "Le batch s'est termine avec succes.";
-
-            case FAILED ->
-                    "Le batch a echoue.";
-
-            case ABANDONED ->
-                    "Le batch a ete abandonne.";
-
-            case UNKNOWN ->
-                    "Le statut du batch est inconnu.";
-        };
+        return ResponseEntity.ok(batchService.getStatut(jobExecutionId));
     }
 
     @GetMapping(
@@ -250,28 +135,11 @@ public class AddressController {
     public ResponseEntity<Resource> getBatchReport(
             @PathVariable long jobExecutionId) throws IOException {
 
-        JobExecution execution =
-                jobRepository.getJobExecution(jobExecutionId);
-
-        if (execution == null) {
-            return ResponseEntity.notFound().build();
-        }
-        
-        ExecutionContext executionContext = execution
-                .getExecutionContext();
-
-        if (!executionContext.containsKey(Constant.REPORT_FILE_NAME)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Path reportFile = batchProperties.getReportDirectory().resolve(executionContext.getString(Constant.REPORT_FILE_NAME));
-
-        Resource resource =
-                new UrlResource(reportFile.toUri());
+        var resource = batchService.getReport(jobExecutionId);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_PLAIN)
-                .contentLength(Files.size(reportFile))
+                .contentLength(resource.contentLength())
                 .cacheControl(CacheControl.noCache())
                 .body(resource);
     }

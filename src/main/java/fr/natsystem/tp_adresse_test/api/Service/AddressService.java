@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+
 import fr.natsystem.tp_adresse_test.api.dto.AddressDto;
 import fr.natsystem.tp_adresse_test.api.dto.TarifCommuneResponse;
 import fr.natsystem.tp_adresse_test.api.entity.Address;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class AddressService {
+
     
     private final AddressRepository addressRepository;
     private final AddressMapper addressMapper;
@@ -113,4 +115,6 @@ public class AddressService {
     public String getCommunesGeoJson(String departement){
         return addressRepository.findAllAsGeoJson(departement);
     }
+
+    
 }
