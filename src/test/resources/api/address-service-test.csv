@@ -1,0 +1,7 @@
+"parameters","numero","codePostal","fts"
+"20 rue du 14 juillet 79000 niort","20","79000","RUE DU 14 JUILLET NIORT*"
+"20 rue du 14 juillet 7900","20","NULL","RUE DU 14 JUILLET 7900*"
+"rue du 14 juillet","14","NULL","RUE DU JUILLET*"
+"79000","NULL","79000","NULL"
+"79000 20","20","79000","NULL"
+"20 niort rue du 14 juillet","20","NULL","NIORT RUE DU 14 JUILLET*"

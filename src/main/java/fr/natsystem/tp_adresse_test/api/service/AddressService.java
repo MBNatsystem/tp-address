@@ -19,6 +19,7 @@ import fr.natsystem.tp_adresse_test.api.parameters.AddressParameters;
 import fr.natsystem.tp_adresse_test.api.repository.AddressRepository;
 import fr.natsystem.tp_adresse_test.api.specification.AddressSpecification;
 import fr.natsystem.tp_adresse_test.api.utils.AddressMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,11 +55,13 @@ public class AddressService {
 
         double rayon = 100;
         Optional<Address> address = addressRepository.findNearestAddress(lon, lat, rayon);
-        while(!address.isPresent()||rayon<=10000000){
+        while(!address.isPresent()&&rayon<=10000000){
             rayon*=4;
             address = addressRepository.findNearestAddress(lon, lat, rayon);
         }
-        
+        if(!address.isPresent()){
+            throw new EntityNotFoundException("Aucune adresse trouvee");
+        }
         return addressMapper.toDto(address.get());
     }
 
@@ -103,7 +106,7 @@ public class AddressService {
             return "";
         }
 
-        return value.trim().toUpperCase()+"*";
+        return value.trim().toUpperCase().replaceAll("\\s+", " ")+"*";
             
     }
 

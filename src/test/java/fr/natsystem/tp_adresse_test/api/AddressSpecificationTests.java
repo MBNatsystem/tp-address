@@ -39,7 +39,7 @@ class AddressSpecificationTests {
     @BeforeEach
     void setUp(){
         jdbcTemplate.execute("TRUNCATE TABLE ban_address_final;");
-        importCsv("specification-test-predata.csv");
+        importCsv("api/specification-test-predata.csv");
     }
 
     public long importCsv(String file) {
@@ -78,7 +78,7 @@ class AddressSpecificationTests {
     }
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/specification-test.csv", delimiter = ';', numLinesToSkip = 1, nullValues = "NULL")
+    @CsvFileSource(resources = "/api/specification-test.csv", delimiter = ';', numLinesToSkip = 1, nullValues = "NULL")
     void shouldFilterAddresses(
         String typeRecherche,
         String codePostal,
