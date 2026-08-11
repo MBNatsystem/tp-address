@@ -18,7 +18,6 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 
-import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.AddressBatchProperties;
 import fr.natsystem.tp_adresse_test.batch.ban.preparationjob.steps.checkformat.CheckCsvFormatTasklet;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +28,6 @@ class CheckCsvFormatTests {
     
     @Mock
     private StepContribution contribution;
-
-    @Mock
-    private AddressBatchProperties properties;
 
     @TempDir
     Path tempDirectory;

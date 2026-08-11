@@ -49,8 +49,9 @@ public class LoadGeojsonStepConfig {
     @Bean
     @StepScope
     public JsonItemReader<CommuneContour> communeContourReader(
-        @Value("${batch.geo-contour.extract-file-name}") Path inputFile
+        @Value("#{jobParameters['inputFile'] != null ? jobParameters['inputFile'] : '${batch.geo-contour.extract-file-name}'}") Path inputFile
     ){
+
         JsonMapper mapper = JsonMapper.builder().build();
 
         var communeObjectReader = mapper

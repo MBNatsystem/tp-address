@@ -27,14 +27,14 @@ class DvfBatchJobTest {
 
     @Autowired
     @Qualifier("importDvfJob")
-    private Job importAddressJob;
+    private Job importDvfJob;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp(){
-        jobOperatorTestUtils.setJob(importAddressJob);
+        jobOperatorTestUtils.setJob(importDvfJob);
         jobRepositoryTestUtils.removeJobExecutions();
         jdbcTemplate.execute("TRUNCATE TABLE address_dvf;");
     }
