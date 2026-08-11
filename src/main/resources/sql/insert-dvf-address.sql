@@ -1,6 +1,5 @@
 INSERT INTO row_address_dvf (
     line_hash,
-    line_number,
     id,
     date_mutation,
     numero_disposition,
@@ -45,7 +44,7 @@ INSERT INTO row_address_dvf (
     latitude
 )
 VALUES (
-    ?, ?, 
+    ?, 
     ?, ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,

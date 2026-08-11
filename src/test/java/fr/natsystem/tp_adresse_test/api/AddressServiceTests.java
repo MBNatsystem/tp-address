@@ -71,6 +71,5 @@ class AddressServiceTests {
         else{
             verify(addressRepository).findFts(numero, codePostal, fts);
         }
-        
     }
 }

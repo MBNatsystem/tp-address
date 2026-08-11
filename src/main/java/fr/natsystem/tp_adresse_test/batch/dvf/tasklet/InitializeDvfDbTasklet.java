@@ -28,7 +28,6 @@ public class InitializeDvfDbTasklet implements Tasklet{
             CREATE UNLOGGED TABLE IF NOT EXISTS row_address_dvf (
                 stage_id BIGSERIAL PRIMARY KEY,
                 line_hash TEXT,
-                line_number BIGINT NOT NULL,
 
                 id VARCHAR(50) NOT NULL,
                 date_mutation DATE,

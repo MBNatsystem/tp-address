@@ -108,6 +108,7 @@ public class AddressController {
             response = batchService.launchBan(parameters);
         } catch (JobExecutionAlreadyRunningException | JobInstanceAlreadyCompleteException
                 | InvalidJobParametersException | JobRestartException e) {
+            log.warn("Erreur d'execution: {}",e);
             return ResponseEntity.status(HttpStatus.LOCKED).body(new BatchLaunchResponse(null,"LOCKED"));
         }
         return ResponseEntity.accepted().body(response);

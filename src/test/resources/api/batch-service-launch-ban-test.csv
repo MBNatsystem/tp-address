@@ -1,0 +1,6 @@
+"inputDirectory","archiveDirectory","downloadEnabled","downloadUrl","downloadFileName","extractFileName","reportFile"
+"inputDirectory","NULL","false","http://downloadurl.com","NULL","extractFileName","NULL"
+"inputDirectory","NULL","true","http://downloadurl.com","NULL","NULL","NULL"
+"inputDirectory","NULL","NULL","http://downloadurl.com","NULL","NULL","NULL"
+"NULL","NULL","false","http://downloadurl.com","NULL","extractFileName","NULL"
+"NULL","NULL","NULL","NULL","NULL","NULL","NULL"

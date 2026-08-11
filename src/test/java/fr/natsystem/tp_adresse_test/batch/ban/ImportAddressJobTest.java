@@ -2,8 +2,6 @@ package fr.natsystem.tp_adresse_test.batch.ban;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.postgresql.copy.CopyManager;
-import org.postgresql.core.BaseConnection;
 import org.springframework.core.io.ClassPathResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,16 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ConnectionCallback;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 
 import org.springframework.test.context.ActiveProfiles;
 
+import fr.natsystem.tp_adresse_test.batch.Utils;
 import fr.natsystem.tp_adresse_test.batch.common.utils.Constant;
 
 @SpringBootTest
@@ -55,46 +47,24 @@ class ImportAddressJobTest {
         jdbcTemplate.execute("TRUNCATE TABLE ban_address_final;");
     }
 
-    public long importCsv() {
-        return jdbcTemplate.execute((ConnectionCallback<Long>) connection -> {
-            CopyManager copyManager = new CopyManager(
-                    connection.unwrap(BaseConnection.class)
-            );
-
-            ClassPathResource resource =
-                    new ClassPathResource("adresses-test-predata.csv");
-
-            String copySql = """
-                    COPY ban_address_final
-                    FROM STDIN
-                    WITH (
-                        FORMAT CSV,
-                        HEADER TRUE,
-                        DELIMITER ';',
-                        ENCODING 'UTF8'
-                    )
-                    """;
-
-            try (
-                    InputStream inputStream = resource.getInputStream();
-                    Reader reader = new InputStreamReader(
-                            inputStream,
-                            StandardCharsets.UTF_8
-                    )
-            ) {
-                return copyManager.copyIn(copySql, reader);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
-    }
-
     @Test
     void shouldImportAllAddressSuccessfully() throws Exception {
 
         //Given
-        importCsv();
+        ClassPathResource resource =
+                    new ClassPathResource("adresses-test-predata.csv");
+        String copySql = """
+                COPY ban_address_final
+                FROM STDIN
+                WITH (
+                    FORMAT CSV,
+                    HEADER TRUE,
+                    DELIMITER ';',
+                    ENCODING 'UTF8'
+                )
+                """;
+        Utils.importCsv(resource, copySql, jdbcTemplate);
+
         JobParameters jobParameters = new JobParametersBuilder()
             .addString(Constant.CHECKSUM, "abcde")
             .addString(Constant.INPUT_DIRECTORY, "src\\test\\resources")
@@ -106,7 +76,6 @@ class ImportAddressJobTest {
 
         //When
         JobExecution jobExecution = jobOperatorTestUtils.startJob(jobParameters);
-
 
         //Then
 

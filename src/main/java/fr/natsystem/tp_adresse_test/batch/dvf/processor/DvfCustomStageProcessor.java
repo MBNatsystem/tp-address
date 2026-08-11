@@ -18,7 +18,6 @@ public class DvfCustomStageProcessor implements ItemProcessor<RowAddressDvf,DvfS
 
         DvfStage stage = new DvfStage();
 
-        stage.setLineNumber(dvf.lineNumber());
         stage.setLineHash(buildHash(dvf));
 
         stage.setIdMutation(dvf.idMutation());
@@ -78,6 +77,6 @@ public class DvfCustomStageProcessor implements ItemProcessor<RowAddressDvf,DvfS
     }
 
     private String buildHash(RowAddressDvf dvf) {
-        return Hash.fastHash(dvf.rawLine());
+        return Hash.fastHash(dvf.toString());
     }
 }

@@ -2,6 +2,7 @@ package fr.natsystem.tp_adresse_test.batch.dvf.step;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 
 import javax.sql.DataSource;
 
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -142,14 +144,28 @@ public class LoadDvfStepConfiguration {
             .getExtractFileName()
         );
 
+        DefaultConversionService conversionService =
+            new DefaultConversionService();
+
+        conversionService.addConverter(
+            String.class,
+            LocalDate.class,
+            source -> source == null || source.isBlank()
+                ? null
+                : LocalDate.parse(source)
+        );
+
+        RecordFieldSetMapper<RowAddressDvf> mapper =
+            new RecordFieldSetMapper<>(RowAddressDvf.class,conversionService);
+
         return new FlatFileItemReaderBuilder<RowAddressDvf>()
         .name("dvfCsvReader")
         .resource(inputFile)
         .linesToSkip(1)
         .delimited()
-        .delimiter(";")
+        .delimiter(",")
         .names(DVF_COLUMNS)
-        .fieldSetMapper(new RecordFieldSetMapper<>(RowAddressDvf.class))
+        .fieldSetMapper(mapper)
         .saveState(true)
         .build();
     }
@@ -170,7 +186,6 @@ public class LoadDvfStepConfiguration {
                     int index = 1;
 
                 ps.setString(index++, item.getLineHash());
-                ps.setLong(index++, item.getLineNumber());
 
                 ps.setString(index++, item.getIdMutation());
                 ps.setObject(index++, item.getDateMutation());
